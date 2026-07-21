@@ -1,1885 +1,655 @@
 <!DOCTYPE html>
-<script type="application/json" id="cowork-artifact-meta">
-{
-  "name": "Rentvine Campaign Command Center",
-  "schemaVersion": 1,
-  "description": "Rentvine Campaign Command Center — PMSWSF 2026 campaign dashboard with sidebar nav covering Overview (Big Rocks, messaging guidelines), Goals & Performance (demo/unit goals, HubSpot sync, reviews), Tasks (Monday list + calendar view), and Product sections.",
-  "mcpTools": [
-    "mcp__eaf36356-f32f-4d82-92ca-2b49ec344884__get_full_board_data",
-    "mcp__eaf36356-f32f-4d82-92ca-2b49ec344884__get_board_items_page"
-  ],
-  "mcpServerNames": [
-    "monday.com",
-    "monday.com"
-  ]
-}
-</script>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Rentvine · Campaign Command Center</title>
-
-
-
+<title>Rentvine Campaign Command Center</title>
 <style>
-:root {
-  color-scheme: dark;
-  --vine:   #00A54F;
-  --dew:    #CAF5DF;
-  --blue:   #167FE1;
-  --grape:  #984FE2;
-  --honey:  #FFB31F;
-  --leaf:   #67C9A4;
-  --radius: 12px;
-  --shadow: 0 2px 12px rgba(0,0,0,0.07);
-  --shadow-md: 0 4px 24px rgba(0,0,0,0.10);
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #0b0d0c;
+    color: #ffffff;
+  }
+  .app { display: flex; min-height: 100vh; }
 
-  /* Dark mode surfaces */
-  --bg:        #0C0F11;
-  --bg-card:   #13171A;
-  --bg-raised: #1A1E22;
-  --bg-input:  #1E2328;
-  --border:    #242930;
-  --border-lt: #2E3540;
+  /* Sidebar */
+  .sidebar {
+    width: 220px;
+    flex-shrink: 0;
+    background: #101312;
+    border-right: 1px solid rgba(255,255,255,0.08);
+    padding: 24px 16px;
+    display: flex;
+    flex-direction: column;
+  }
+  .brand { display: flex; align-items: center; gap: 8px; padding: 0 8px 24px 8px; }
+  .brand-mark {
+    width: 24px; height: 24px; border-radius: 6px;
+    background: #00A54F;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 800; color: #0b0d0c;
+  }
+  .brand-name { font-weight: 800; font-size: 15px; letter-spacing: -0.2px; }
+  .nav-label {
+    font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: #7E7E7E; padding: 4px 12px 8px 12px; margin-top: 8px;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border-radius: 8px; margin-bottom: 2px;
+    font-size: 14px; font-weight: 600; color: #B1B1B1;
+    cursor: pointer; user-select: none; border: 1px solid transparent;
+  }
+  .nav-item:hover { background: rgba(255,255,255,0.04); color: #ffffff; }
+  .nav-item.active {
+    background: rgba(0,165,79,0.14);
+    color: #67C9A4;
+    border-color: rgba(0,165,79,0.3);
+  }
+  .nav-icon { width: 16px; text-align: center; opacity: 0.9; }
+  .sidebar-footer {
+    margin-top: auto; padding: 12px 8px 0 8px;
+    display: flex; align-items: center; gap: 8px;
+    color: #7E7E7E; font-size: 12px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: #00A54F; }
 
-  /* Dark text */
-  --text-1:    #F0F1F3;
-  --text-2:    #9BA3AE;
-  --text-3:    #505A64;
+  /* Main */
+  .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 32px; border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .topbar-title { display: flex; align-items: center; gap: 12px; }
+  .topbar-title h1 { font-size: 16px; margin: 0; font-weight: 700; }
+  .topbar-title .sep { color: #494949; }
+  .confidential-badge {
+    font-size: 11px; padding: 6px 12px; border-radius: 999px;
+    background: rgba(255,255,255,0.06); color: #B1B1B1; border: 1px solid rgba(255,255,255,0.08);
+  }
+  .content { padding: 28px 32px 60px 32px; max-width: 1000px; }
+  .view { display: none; }
+  .view.active { display: block; }
 
-  /* Dim tints */
-  --vine-dim:  #0D2419;
-  --blue-dim:  #0B1929;
-  --grape-dim: #1C0E35;
-  --honey-dim: #2A1C00;
-  --lava-dim:  #2E0A0A;
+  /* Hero */
+  .hero {
+    background: radial-gradient(120% 140% at 0% 0%, rgba(0,165,79,0.18) 0%, rgba(0,165,79,0.04) 45%, rgba(22,127,225,0.05) 100%);
+    border: 1px solid rgba(0,165,79,0.18);
+    border-radius: 16px;
+    padding: 32px;
+    margin-bottom: 24px;
+  }
+  .eyebrow {
+    font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: #67C9A4; font-weight: 700; margin-bottom: 12px;
+  }
+  .hero h2 {
+    font-size: 30px; line-height: 1.25; margin: 0 0 14px 0; font-weight: 800;
+    max-width: 640px; letter-spacing: -0.3px;
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff;
+    opacity: 1;
+  }
+  h1, h2, h3, h4, h5, h6 { color: #ffffff; }
+  .hero p {
+    font-family: 'Manrope', sans-serif;
+    color: #d7d7d7; font-size: 15px; line-height: 1.6; max-width: 560px; margin: 0 0 22px 0;
+  }
+  .phase-row { display: flex; flex-wrap: wrap; gap: 10px; }
+  .phase-pill {
+    font-size: 13px; font-weight: 700; padding: 8px 16px; border-radius: 999px;
+    border: 1px solid transparent;
+  }
+  .phase-1 { background: rgba(0,165,79,0.16); color: #67C9A4; border-color: rgba(0,165,79,0.3); }
+  .phase-2 { background: rgba(22,127,225,0.16); color: #62AEEF; border-color: rgba(22,127,225,0.3); }
+  .phase-3 { background: rgba(152,79,226,0.16); color: #C59AF1; border-color: rgba(152,79,226,0.3); }
+  .phase-4 { background: rgba(255,179,31,0.14); color: #FFCC6A; border-color: rgba(255,179,31,0.28); }
 
-  /* Override legacy variables to resolve dark */
-  --night: var(--text-1);
-  --smoke: var(--text-2);
-  --stone: var(--text-2);
-  --grey:  var(--text-3);
-  --paper: var(--bg-raised);
-  --white: var(--bg-card);
-  --dew:   var(--vine-dim);
-}
+  /* Card */
+  .card {
+    background: #141716; border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px; padding: 22px 24px; margin-bottom: 24px;
+  }
+  .card-head {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; gap: 16px; flex-wrap: wrap;
+  }
+  .card-head h3 { font-size: 16px; margin: 0; font-weight: 700; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: #00A54F; color: #0b0d0c; border: none;
+    font-weight: 700; font-size: 13px; padding: 10px 16px; border-radius: 9px;
+    cursor: pointer; white-space: nowrap; font-family: inherit;
+  }
+  .btn:hover { background: #06b957; }
+  .btn:disabled { opacity: 0.6; cursor: default; }
+  .alert {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    background: rgba(248,72,72,0.1); border: 1px solid rgba(248,72,72,0.3);
+    color: #FC8989; border-radius: 10px; padding: 14px 16px; font-size: 13.5px;
+  }
+  .alert a { color: #ffffff; text-decoration: underline; font-weight: 700; cursor: pointer; }
+  .alert.hidden { display: none; }
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
-body {
-  font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: var(--bg);
-  color: var(--text-1);
-  font-size: 15px;
-  line-height: 1.5;
-  height: 100vh;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
+  .section-label {
+    font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: #7E7E7E; font-weight: 700; margin: 0 0 12px 4px;
+  }
+  .guideline-title { font-size: 17px; font-weight: 800; margin: 0 0 10px 0; }
+  .guideline-body { color: #cfcfcf; font-size: 14.5px; line-height: 1.7; margin: 0 0 20px 0; }
 
-/* ── Topbar ── */
-.topbar {
-  height: 56px;
-  background: #0E1215;
-  border-bottom: 1.5px solid var(--border);
-  display: flex;
-  align-items: center;
-  padding: 0 24px;
-  gap: 16px;
-  flex-shrink: 0;
-  z-index: 100;
-}
-.topbar-logo {
-  font-size: 17px;
-  font-weight: 800;
-  color: var(--text-1);
-  letter-spacing: -0.3px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  text-decoration: none;
-  flex-shrink: 0;
-}
-.topbar-logo .dot { color: var(--vine); font-size: 20px; line-height: 1; }
-.topbar-divider {
-  width: 1px;
-  height: 20px;
-  background: var(--border);
-  flex-shrink: 0;
-}
-.topbar-title {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--text-1);
-  letter-spacing: -0.2px;
-  flex: 1;
-}
-.topbar-chip {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--text-2);
-  background: var(--bg-raised);
-  border-radius: 20px;
-  padding: 4px 12px;
-  border: 1px solid var(--border);
-  flex-shrink: 0;
-}
+  .stat-row { display: flex; gap: 14px; flex-wrap: wrap; }
+  .stat-card {
+    flex: 1; min-width: 130px;
+    background: rgba(0,165,79,0.06); border: 1px solid rgba(0,165,79,0.28);
+    border-radius: 12px; padding: 16px; text-align: center;
+  }
+  .stat-num { font-size: 26px; font-weight: 800; color: #67C9A4; line-height: 1; margin-bottom: 6px; }
+  .stat-label { font-size: 12px; color: #B1B1B1; line-height: 1.3; }
 
-/* ── Body layout ── */
-.app-body {
-  display: flex;
-  flex: 1;
-  height: calc(100vh - 56px);
-  overflow: hidden;
-}
+  .placeholder {
+    color: #7E7E7E; font-size: 14px; text-align: center; padding: 60px 20px;
+    border: 1px dashed rgba(255,255,255,0.12); border-radius: 12px;
+  }
+  .coming-soon {
+    text-align: center; padding: 100px 20px;
+    border: 1px dashed rgba(255,255,255,0.14); border-radius: 16px;
+  }
+  .coming-soon-emoji { font-size: 40px; margin-bottom: 18px; }
+  .coming-soon-title { font-size: 34px; font-weight: 800; color: #ffffff; margin-bottom: 10px; }
+  .coming-soon-body { font-size: 15px; color: #B1B1B1; }
+  .spin { animation: spin 0.8s linear infinite; display: inline-block; }
 
-/* ── Sidebar ── */
-.sidebar {
-  width: 220px;
-  flex-shrink: 0;
-  background: #0E1215;
-  border-right: 1.5px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  padding: 16px 0;
-}
-.sidebar-section-label {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
-  color: var(--text-3);
-  padding: 0 20px;
-  margin-bottom: 8px;
-  margin-top: 4px;
-}
-.sidebar-nav { display: flex; flex-direction: column; gap: 2px; padding: 0 10px; }
-.sidebar-nav-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 9px 12px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-2);
-  border: none;
-  background: none;
-  font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  text-align: left;
-  transition: background 0.12s, color 0.12s;
-  border-left: 3px solid transparent;
-  margin-left: -3px;
-}
-.sidebar-nav-item:hover { background: var(--bg-raised); color: var(--text-1); }
-.sidebar-nav-item.active {
-  background: var(--vine-dim);
-  color: var(--vine);
-  border-left-color: var(--vine);
-}
-.sidebar-nav-item svg { flex-shrink: 0; opacity: 0.7; }
-.sidebar-nav-item.active svg { opacity: 1; }
-.sidebar-footer {
-  margin-top: auto;
-  padding: 16px 20px;
-  font-size: 11px;
-  color: var(--text-3);
-  font-weight: 500;
-  line-height: 1.5;
-}
+  /* What's coming timeline */
+  .timeline-row {
+    display: flex; gap: 14px; overflow-x: auto; padding-bottom: 6px;
+  }
+  .milestone-card {
+    flex: 0 0 205px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-top: 3px solid rgba(0,165,79,0.5);
+    border-radius: 12px;
+    padding: 16px 16px 18px 16px;
+  }
+  .milestone-card.type-webinar { border-top-color: rgba(22,127,225,0.55); }
+  .milestone-card.type-launch { border-top-color: rgba(152,79,226,0.55); }
+  .milestone-date {
+    font-size: 12px; font-weight: 800; letter-spacing: 0.03em;
+    color: #67C9A4; margin-bottom: 10px;
+  }
+  .milestone-title {
+    font-size: 14px; font-weight: 700; line-height: 1.35;
+    color: #ffffff; margin-bottom: 12px; min-height: 38px;
+  }
+  .milestone-pill {
+    display: inline-block; font-size: 10.5px; font-weight: 700;
+    padding: 3px 8px; border-radius: 999px; white-space: nowrap;
+    background: rgba(0,165,79,0.14); color: #67C9A4;
+  }
+  .milestone-card.type-webinar .milestone-pill { background: rgba(98,174,239,0.14); color: #62AEEF; }
+  .milestone-card.type-launch .milestone-pill { background: rgba(152,79,226,0.14); color: #C59AF1; }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ── Main content ── */
-.main-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 32px 40px 80px;
-}
+  .note { color: #7E7E7E; font-size: 12.5px; margin: -6px 0 20px 4px; }
+  .loading-text { color: #7E7E7E; font-size: 13.5px; }
 
-/* ── Tab panels ── */
-.tab-panel { display: none; animation: fadeIn 0.22s ease forwards; }
-.tab-panel.active { display: block; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+  .top-leads-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  .top-leads-table th {
+    text-align: left; font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase;
+    color: #7E7E7E; font-weight: 700; padding: 0 0 10px 0; border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .top-leads-table td {
+    padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.06); color: #d7d7d7; vertical-align: middle;
+  }
+  .top-leads-table tr:last-child td { border-bottom: none; }
+  .rank-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 22px; height: 22px; border-radius: 6px; background: rgba(0,165,79,0.14);
+    color: #67C9A4; font-weight: 800; font-size: 12px; margin-right: 10px;
+  }
+  .lead-company { color: #ffffff; font-weight: 700; }
+  .lead-units { color: #67C9A4; font-weight: 800; text-align: right; }
+  .src-pill {
+    font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px;
+    background: rgba(98,174,239,0.14); color: #62AEEF; white-space: nowrap;
+  }
 
-/* ── Section header with external link ── */
-.section-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-.section-title {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
-  color: var(--stone);
-}
-.ext-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 11px;
-  font-weight: 700;
-  color: #62AEEF;
-  text-decoration: none;
-  padding: 2px 8px;
-  border-radius: 6px;
-  border: 1px solid rgba(98,174,239,0.2);
-  transition: background 0.12s;
-  white-space: nowrap;
-}
-.ext-link:hover { background: rgba(98,174,239,0.08); }
-.ext-link svg { flex-shrink: 0; }
+  .tasks-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  .tasks-table th {
+    text-align: left; font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase;
+    color: #7E7E7E; font-weight: 700; padding: 0 0 10px 0; border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .tasks-table td {
+    padding: 9px 10px 9px 0; border-bottom: 1px solid rgba(255,255,255,0.06); color: #d7d7d7; vertical-align: middle;
+  }
+  .tasks-table tr:last-child td { border-bottom: none; }
+  .tasks-table .unassigned { color: #7E7E7E; font-style: italic; }
+  .stage-pill {
+    font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px; white-space: nowrap;
+  }
+  .stage-active { background: rgba(255,179,31,0.14); color: #FFCC6A; }
+  .stage-done { background: rgba(0,165,79,0.14); color: #67C9A4; }
+  .task-link { color: #ffffff; text-decoration: none; border-bottom: 1px dashed rgba(255,255,255,0.25); }
+  .task-link:hover { color: #67C9A4; border-bottom-color: #67C9A4; }
+  .stage-risk { background: rgba(248,72,72,0.14); color: #FC8989; }
+  .area-pill {
+    font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px;
+    background: rgba(152,79,226,0.14); color: #C59AF1; white-space: nowrap;
+  }
 
-/* ── Toast ── */
-#toast {
-  position: fixed;
-  bottom: 32px;
-  left: 50%;
-  transform: translateX(-50%) translateY(80px);
-  background: #2A3140;
-  color: #F0F1F3;
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  z-index: 9999;
-  transition: transform 0.3s ease;
-  pointer-events: none;
-}
-#toast.show { transform: translateX(-50%) translateY(0); }
-#toast.error { background: #C0392B; }
+  .product-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .product-card {
+    background: #141716; border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px; padding: 18px 20px;
+  }
+  .product-card .item-name {
+    display: block; font-weight: 800; font-size: 15.5px; margin-bottom: 12px; line-height: 1.3;
+  }
+  .product-card .pill-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+  .product-card .meta-row {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 12.5px; color: #B1B1B1; padding: 7px 0; border-top: 1px solid rgba(255,255,255,0.06);
+  }
+  .product-card .meta-row:first-of-type { border-top: none; padding-top: 0; }
+  .product-card .meta-value { color: #ffffff; font-weight: 600; }
+  .product-card .ga-date { color: #67C9A4; font-weight: 800; }
+  @media (max-width: 900px) {
+    .product-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 560px) {
+    .product-grid { grid-template-columns: 1fr; }
+  }
 
-/* ── Card base ── */
-.card {
-  background: var(--bg-card);
-  border-radius: var(--radius);
-  box-shadow: none;
-  border: 1.5px solid var(--border);
-  padding: 24px;
-}
-
-/* ── Skeleton ── */
-.skeleton {
-  background: linear-gradient(90deg, #1A1E22 25%, #242930 50%, #1A1E22 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.4s infinite;
-  border-radius: 8px;
-}
-@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-
-/* ── Badge / pills ── */
-.badge { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; letter-spacing: 0.4px; padding: 3px 10px; border-radius: 20px; cursor: pointer; transition: opacity 0.15s; user-select: none; border: none; }
-.badge:hover { opacity: 0.8; }
-.badge.not-started { background: var(--bg-raised); color: var(--text-2); }
-.badge.in-progress { background: var(--honey-dim); color: var(--honey); }
-.badge.in-review   { background: var(--blue-dim); color: var(--blue); }
-.badge.done        { background: var(--vine-dim); color: var(--vine); }
-
-.progress-bar-wrap { background: var(--bg-raised); border-radius: 99px; height: 6px; overflow: hidden; }
-.progress-bar-fill { height: 100%; border-radius: 99px; transition: width 0.4s ease; }
-
-/* ─── OVERVIEW TAB ─── */
-.campaign-anchor {
-  background: #0D1117;
-  border-radius: var(--radius);
-  padding: 40px 44px;
-  margin-bottom: 28px;
-  position: relative;
-  overflow: hidden;
-}
-.campaign-anchor::before {
-  content: '';
-  position: absolute;
-  top: -60px; right: -60px;
-  width: 240px; height: 240px;
-  background: radial-gradient(circle, rgba(0,165,79,0.18) 0%, transparent 70%);
-  border-radius: 50%;
-}
-.campaign-anchor::after {
-  content: '';
-  position: absolute;
-  bottom: -80px; left: 30%;
-  width: 320px; height: 200px;
-  background: radial-gradient(circle, rgba(22,127,225,0.10) 0%, transparent 70%);
-  border-radius: 50%;
-}
-.campaign-anchor .anchor-label {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  color: var(--leaf);
-  margin-bottom: 14px;
-}
-.campaign-anchor h2 {
-  font-size: 26px;
-  font-weight: 800;
-  color: var(--white);
-  line-height: 1.2;
-  letter-spacing: -0.5px;
-  margin-bottom: 12px;
-  max-width: 600px;
-  position: relative;
-  z-index: 1;
-}
-.campaign-anchor p {
-  font-size: 14px;
-  color: rgba(255,255,255,0.65);
-  max-width: 560px;
-  font-weight: 500;
-  position: relative;
-  z-index: 1;
-}
-.anchor-meta {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-top: 20px;
-  position: relative;
-  z-index: 1;
-}
-.anchor-pill {
-  padding: 5px 14px;
-  border-radius: 99px;
-  font-size: 12px;
-  font-weight: 700;
-  white-space: nowrap;
-}
-.anchor-pill.vine-pill  { background: rgba(0,165,79,0.2);   color: var(--leaf); }
-.anchor-pill.blue-pill  { background: rgba(22,127,225,0.2); color: #7BB8F4; }
-.anchor-pill.grape-pill { background: rgba(152,79,226,0.2); color: #C89EF5; }
-.anchor-pill.honey-pill { background: rgba(255,179,31,0.2); color: var(--honey); }
-
-/* Rock cards */
-.rocks-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-bottom: 20px;
-}
-.rock-card {
-  border: 1.5px solid var(--border);
-  border-radius: 12px;
-  padding: 18px 20px;
-  background: var(--bg-card);
-  position: relative;
-  overflow: hidden;
-}
-.rock-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
-.rock-card.rock-vine::before  { background: var(--vine); }
-.rock-card.rock-blue::before  { background: var(--blue); }
-.rock-card.rock-grape::before { background: var(--grape); }
-.rock-card.rock-honey::before { background: var(--honey); }
-.rock-card-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; }
-.rock-num { font-size: 10px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 2px; }
-.rock-vine  .rock-num  { color: var(--vine); }
-.rock-blue  .rock-num  { color: var(--blue); }
-.rock-grape .rock-num  { color: var(--grape); }
-.rock-honey .rock-num  { color: var(--honey); }
-.rock-title { font-size: 14px; font-weight: 800; color: var(--night); }
-.rock-progress-label { font-size: 11px; font-weight: 700; color: var(--stone); white-space: nowrap; margin-left: 8px; padding-top: 2px; }
-.rock-bar-wrap { height: 5px; background: var(--bg-raised); border-radius: 99px; margin-bottom: 14px; overflow: hidden; }
-.rock-bar-fill { height: 100%; border-radius: 99px; transition: width 0.4s ease; }
-.rock-vine  .rock-bar-fill { background: var(--vine); }
-.rock-blue  .rock-bar-fill { background: var(--blue); }
-.rock-grape .rock-bar-fill { background: var(--grape); }
-.rock-honey .rock-bar-fill { background: var(--honey); }
-.rock-items-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
-.rock-item-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; }
-.rock-item-name { color: var(--smoke); font-weight: 600; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.rock-item-name.done-item { color: var(--grey); text-decoration: line-through; }
-.rock-status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-.dot-done    { background: var(--vine); }
-.dot-progress{ background: #FDAB3D; }
-.dot-blocked { background: #DF2F4A; }
-.dot-none    { background: var(--border-lt); }
-
-.milestones-strip {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  padding: 14px 18px;
-  background: var(--bg-raised);
-  border-radius: 10px;
-  align-items: center;
-  margin-bottom: 16px;
-}
-.milestone-label { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: var(--stone); margin-right: 4px; }
-.milestone-pill { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; color: var(--smoke); background: var(--bg-card); border: 1.5px solid var(--border); border-radius: 20px; padding: 4px 12px; }
-
-.pebbles-strip {
-  background: var(--bg-card);
-  border-radius: var(--radius);
-  box-shadow: none;
-  border: 1.5px solid var(--border);
-  padding: 16px 20px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-}
-.pebbles-label { font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--stone); flex-shrink: 0; }
-.pebble-pill { background: var(--bg-raised); border-radius: 99px; padding: 5px 14px; font-size: 12px; font-weight: 600; color: var(--smoke); border: 1.5px solid var(--border); }
-
-/* Messaging guidelines */
-.messaging-card {
-  background: var(--bg-card);
-  border-radius: var(--radius);
-  box-shadow: none;
-  border: 1.5px solid var(--border);
-  padding: 28px 32px;
-  margin-bottom: 20px;
-}
-.messaging-card h3 { font-size: 15px; font-weight: 800; color: var(--night); margin-bottom: 6px; }
-.messaging-card p { font-size: 13px; color: var(--smoke); font-weight: 500; line-height: 1.65; margin-bottom: 14px; }
-.proof-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
-  margin: 16px 0;
-}
-.proof-tile {
-  background: var(--bg-raised);
-  border-radius: 10px;
-  padding: 18px 16px;
-  text-align: center;
-  border-top: 3px solid var(--vine);
-}
-.proof-tile .stat { font-size: 28px; font-weight: 800; color: var(--vine); letter-spacing: -1px; line-height: 1; margin-bottom: 5px; }
-.proof-tile .desc { font-size: 11px; font-weight: 600; color: var(--text-2); line-height: 1.4; }
-.sample-copy-block {
-  background: var(--vine-dim);
-  border-left: 3px solid var(--vine);
-  border-radius: 0 8px 8px 0;
-  padding: 12px 16px;
-  margin: 10px 0;
-  font-size: 13px;
-  font-style: italic;
-  color: var(--text-2);
-  font-weight: 500;
-  line-height: 1.6;
-}
-.voice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
-.voice-item { background: var(--bg-raised); border-radius: 8px; padding: 12px 14px; font-size: 13px; font-weight: 600; color: var(--text-2); }
-.voice-item strong { display: block; font-size: 11px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
-
-/* ─── GOALS & PERFORMANCE TAB ─── */
-.goals-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 28px; }
-.goal-card {
-  background: var(--bg-card);
-  border-radius: var(--radius);
-  box-shadow: none;
-  border: 1.5px solid var(--border);
-  padding: 28px;
-  border-top: 4px solid var(--vine);
-}
-.goal-card .big-stat { font-size: 44px; font-weight: 800; color: var(--text-1); letter-spacing: -2px; line-height: 1; margin-bottom: 6px; }
-.goal-card .stat-label { font-size: 13px; font-weight: 600; color: var(--text-2); margin-bottom: 16px; }
-.progress-inputs { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
-.progress-inputs input { width: 80px; padding: 6px 10px; border: 1.5px solid var(--border-lt); border-radius: 8px; font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; font-weight: 600; color: var(--text-1); background: var(--bg-input); text-align: center; transition: border-color 0.15s; outline: none; }
-.progress-inputs input:focus { border-color: var(--vine); }
-.progress-inputs .sep { color: var(--grey); font-weight: 600; }
-.progress-inputs .pct { font-size: 13px; font-weight: 700; color: var(--vine); min-width: 44px; }
-.goal-source { font-size: 11px; font-weight: 600; color: var(--stone); margin-top: 8px; }
-.goal-updated { font-size: 11px; color: var(--grey); margin-top: 4px; }
-
-/* Review platform cards */
-.rep-platforms { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
-.rep-card { background: var(--bg-card); border-radius: var(--radius); box-shadow: none; border: 1.5px solid var(--border); padding: 24px; border-top: 4px solid var(--vine); }
-.rep-card.blue-rep { border-top-color: var(--blue); }
-.rep-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
-.rep-platform-name { font-size: 17px; font-weight: 800; color: var(--night); letter-spacing: -0.3px; }
-.rep-link { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700; color: var(--vine); text-decoration: none; padding: 5px 12px; border-radius: 8px; border: 1.5px solid rgba(0,165,79,0.3); transition: background 0.15s; }
-.rep-link.blue-link { color: var(--blue); border-color: rgba(22,127,225,0.3); }
-.rep-link:hover { background: var(--dew); }
-.rep-link.blue-link:hover { background: rgba(22,127,225,0.06); }
-.rep-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-.rep-stat-field { display: flex; flex-direction: column; gap: 5px; }
-.rep-stat-field label { font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: var(--stone); }
-.rep-stat-field input { padding: 8px 12px; border: 1.5px solid var(--border-lt); border-radius: 8px; font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 20px; font-weight: 800; color: var(--text-1); background: var(--bg-input); outline: none; text-align: center; transition: border-color 0.15s; width: 100%; }
-.rep-stat-field input:focus { border-color: var(--vine); }
-
-/* Reviews feed */
-.reviews-feed-section { background: var(--bg-card); border-radius: var(--radius); box-shadow: none; border: 1.5px solid var(--border); padding: 24px; margin-bottom: 24px; }
-.reviews-feed-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-.reviews-stat-bar { display: flex; gap: 24px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1.5px solid var(--border); flex-wrap: wrap; }
-.rev-stat-item { font-size: 13px; font-weight: 600; color: var(--stone); }
-.rev-stat-item strong { color: var(--text-1); font-size: 18px; font-weight: 800; display: block; line-height: 1.1; }
-.rev-cat-btn { padding: 5px 14px; border-radius: 20px; border: 1.5px solid var(--border-lt); background: transparent; color: var(--text-2); font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.15s; }
-.rev-cat-btn:hover { border-color: var(--vine); color: var(--vine); }
-.rev-cat-btn.active { background: var(--vine); border-color: var(--vine); color: #fff; }
-.reviews-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.review-card { border: 1.5px solid var(--border); border-radius: 10px; padding: 16px; transition: box-shadow 0.15s, background 0.15s; }
-.review-card:hover { box-shadow: none; background: var(--bg-raised); }
-.review-card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; gap: 8px; }
-.review-platform-badge { display: inline-block; padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 700; flex-shrink: 0; }
-.review-platform-badge.g2-badge     { background: var(--vine-dim); color: var(--vine); }
-.review-platform-badge.google-badge { background: var(--blue-dim); color: var(--blue); }
-.review-date   { font-size: 12px; color: var(--grey); font-weight: 600; }
-.review-reviewer { font-size: 14px; font-weight: 700; color: var(--night); margin-bottom: 2px; }
-.review-company { font-size: 12px; color: var(--stone); font-weight: 600; margin-bottom: 6px; }
-.review-rating  { margin-bottom: 8px; }
-.stars-filled { color: var(--honey); letter-spacing: -1px; }
-.stars-empty  { color: var(--border-lt); letter-spacing: -1px; }
-.g2-rating-txt { font-size: 13px; font-weight: 700; color: var(--vine); }
-.review-title { font-size: 13px; font-weight: 700; color: var(--night); margin-bottom: 4px; }
-.review-text  { font-size: 13px; color: var(--smoke); font-weight: 500; line-height: 1.55; }
-.review-readmore { background: none; border: none; cursor: pointer; font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 12px; font-weight: 700; color: var(--blue); padding: 0; margin-left: 4px; }
-
-/* ─── TASKS TAB ─── */
-.view-pill-row { display: flex; gap: 6px; margin-bottom: 20px; }
-.view-pill { padding: 6px 18px; border-radius: 20px; border: 1.5px solid var(--border-lt); background: transparent; color: var(--text-2); font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s; }
-.view-pill:hover { border-color: var(--vine); color: var(--vine); }
-.view-pill.active { background: var(--vine); border-color: var(--vine); color: #fff; }
-
-.monday-section { background: var(--bg-card); border-radius: var(--radius); box-shadow: none; border: 1.5px solid var(--border); padding: 24px; margin-bottom: 24px; }
-.monday-section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-.monday-section-title { font-size: 15px; font-weight: 700; color: var(--text-1); }
-.sync-btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 16px; background: var(--vine); color: var(--white); border: none; border-radius: 8px; font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; transition: background 0.15s; }
-.sync-btn:hover { background: #008A42; }
-.sync-btn:disabled { background: var(--grey); cursor: default; }
-
-.task-table { width: 100%; border-collapse: collapse; }
-.task-table th { text-align: left; font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-3); padding: 0 12px 10px 0; border-bottom: 1.5px solid var(--border); }
-.task-table td { padding: 12px 12px 12px 0; font-size: 13px; color: var(--text-2); font-weight: 500; border-bottom: 1px solid var(--border); vertical-align: middle; }
-.task-table tr:last-child td { border-bottom: none; }
-.task-name { font-weight: 700; color: var(--text-1); }
-.group-tag { font-size: 11px; font-weight: 600; color: var(--text-2); background: var(--bg-raised); padding: 2px 8px; border-radius: 99px; }
-.status-pill { display: inline-block; padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 700; letter-spacing: 0.3px; }
-.status-pill.sent  { background: var(--vine-dim); color: var(--vine); }
-.status-pill.draft { background: var(--honey-dim); color: var(--honey); }
-.status-pill.other { background: var(--bg-raised); color: var(--text-2); }
-.mark-sent-btn { display: inline-flex; align-items: center; gap: 4px; padding: 5px 12px; background: var(--vine); color: var(--white); border: none; border-radius: 7px; font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 12px; font-weight: 700; cursor: pointer; transition: background 0.15s; white-space: nowrap; }
-.mark-sent-btn:hover { background: #008A42; }
-.sent-badge { display: inline-block; padding: 5px 12px; border-radius: 7px; font-size: 12px; font-weight: 600; color: var(--text-2); background: var(--bg-raised); }
-.skeleton-row td { padding: 10px 12px 10px 0; }
-.skeleton-cell { height: 16px; width: 100%; }
-
-.empty-state-monday { text-align: center; padding: 40px 20px; color: var(--stone); font-size: 14px; font-weight: 500; line-height: 1.7; }
-.empty-state-monday a { color: var(--blue); font-weight: 700; text-decoration: none; }
-.empty-state-monday a:hover { text-decoration: underline; }
-.error-state { display: flex; align-items: center; gap: 12px; background: var(--lava-dim); border: 1.5px solid rgba(248,72,72,0.3); border-radius: 10px; padding: 16px 20px; font-size: 13px; font-weight: 600; color: #FC8989; }
-.retry-link { margin-left: auto; font-size: 12px; font-weight: 700; color: var(--blue); cursor: pointer; background: none; border: none; font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; text-decoration: underline; }
-
-/* Calendar */
-#calendar-view { display: none; }
-.calendar-header-row {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 1px;
-  margin-bottom: 2px;
-}
-.cal-day-label {
-  text-align: center;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--text-3);
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  padding: 6px 0;
-}
-.calendar-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 1px;
-  background: var(--border);
-  border-radius: 10px;
-  overflow: hidden;
-}
-.cal-cell {
-  background: var(--bg-card);
-  min-height: 90px;
-  padding: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-.cal-cell.past-day { background: #0A0D0F; }
-.cal-date-num {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--text-2);
-  line-height: 1;
-  width: 22px;
-  height: 22px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  margin-bottom: 2px;
-  flex-shrink: 0;
-}
-.cal-date-num.today { background: var(--vine); color: var(--white); }
-.cal-task-pill {
-  font-size: 11px;
-  font-weight: 600;
-  background: var(--vine-dim);
-  color: var(--vine);
-  border-radius: 4px;
-  padding: 2px 6px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  cursor: default;
-}
-.cal-task-pill:hover { background: #1A3D2C; }
-
-/* ─── PRODUCT TAB ─── */
-.product-intro { background: var(--bg-card); border-radius: var(--radius); box-shadow: none; border: 1.5px solid var(--border); padding: 28px 32px; margin-bottom: 24px; }
-.product-intro h3 { font-size: 15px; font-weight: 800; color: var(--night); margin-bottom: 8px; }
-.product-intro p  { font-size: 13px; color: var(--smoke); font-weight: 500; line-height: 1.65; }
-.feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
-@media (max-width: 900px) { .feature-grid { grid-template-columns: 1fr 1fr; } }
-.feature-card {
-  background: var(--bg-card);
-  border-radius: var(--radius);
-  box-shadow: none;
-  border: 1.5px solid var(--border);
-  padding: 22px 20px;
-  border-top: 3px solid var(--vine);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.feature-card:nth-child(2) { border-top-color: var(--blue); }
-.feature-card:nth-child(3) { border-top-color: var(--grape); }
-.feature-card:nth-child(4) { border-top-color: var(--honey); }
-.feature-card:nth-child(5) { border-top-color: var(--leaf); }
-.feature-name { font-size: 14px; font-weight: 800; color: var(--night); }
-.feature-benefit { font-size: 13px; font-weight: 500; color: var(--smoke); line-height: 1.5; }
-.feature-map { font-size: 12px; font-weight: 600; color: var(--text-2); background: var(--bg-raised); border-radius: 6px; padding: 6px 10px; line-height: 1.4; }
-.feature-map strong { color: var(--vine); font-weight: 700; }
-.feature-demo-link { font-size: 12px; font-weight: 700; color: var(--blue); text-decoration: none; display: inline-flex; align-items: center; gap: 4px; margin-top: auto; }
-.feature-demo-link:hover { text-decoration: underline; }
-
-.alignment-card { background: var(--bg-card); border-radius: var(--radius); box-shadow: none; border: 1.5px solid var(--border); padding: 28px 32px; margin-bottom: 24px; }
-.alignment-card h3 { font-size: 15px; font-weight: 800; color: var(--night); margin-bottom: 16px; }
-.alignment-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-.alignment-col h4 { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--stone); margin-bottom: 12px; }
-.alignment-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
-.alignment-list li { font-size: 13px; font-weight: 500; color: var(--smoke); display: flex; align-items: flex-start; gap: 8px; line-height: 1.5; }
-.alignment-list li::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--vine); flex-shrink: 0; margin-top: 6px; }
-.alignment-list.blue-list li::before { background: var(--blue); }
-
-/* Utility */
-.mb-8  { margin-bottom: 8px; }
-.mb-16 { margin-bottom: 16px; }
-.mb-20 { margin-bottom: 20px; }
-.mb-24 { margin-bottom: 24px; }
-.mb-28 { margin-bottom: 28px; }
-.mb-32 { margin-bottom: 32px; }
-.row { display: flex; align-items: center; gap: 8px; }
-.flex-1 { flex: 1; }
+  /* Rocks & Pebbles */
+  .rocks-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 28px;
+  }
+  .rock-col .rock-icon { font-size: 20px; margin-bottom: 10px; line-height: 1; }
+  .rock-col h4 { font-size: 16px; font-weight: 800; margin: 0 0 14px 0; }
+  .rock-list { list-style: none; margin: 0; padding: 0; }
+  .rock-list li {
+    font-size: 14px; color: #B1B1B1; padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .rock-list li:last-child { border-bottom: none; padding-bottom: 0; }
+  .pebble-row { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; }
+  .pebble-pill {
+    background: #141716; border: 1px solid rgba(255,255,255,0.16);
+    color: #ffffff; font-weight: 700; font-size: 14px;
+    padding: 12px 22px; border-radius: 999px;
+  }
+  @media (max-width: 800px) {
+    .rocks-grid { grid-template-columns: repeat(2, 1fr); }
+  }
 </style>
 </head>
 <body>
-
-<!-- ── Topbar ── -->
-<header class="topbar">
-  <a class="topbar-logo" href="#">
-    <svg width="26" height="26" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="28" height="28" rx="7" fill="#00A54F"/>
-      <path d="M7 20 L7 11 L13 8 L13 14 Z" fill="white"/>
-      <path d="M21 20 L21 11 L15 8 L15 14 Z" fill="white"/>
-    </svg>
-    <span style="font-size:15px;font-weight:800;color:var(--text-1);letter-spacing:-0.3px;">rentvine</span>
-  </a>
-  <div class="topbar-divider"></div>
-  <div class="topbar-title">Campaign Command Center</div>
-  <div class="topbar-chip">2026 · PMSWSF · Confidential</div>
-</header>
-
-<!-- ── App body ── -->
-<div class="app-body">
-
-  <!-- ── Sidebar ── -->
-  <nav class="sidebar">
-    <div class="sidebar-section-label">Navigation</div>
-    <div class="sidebar-nav">
-
-      <button class="sidebar-nav-item active" onclick="showTab('overview', this)">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg>
-        Overview
-      </button>
-
-      <button class="sidebar-nav-item" onclick="showTab('goals', this)">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-        Goals &amp; Performance
-      </button>
-
-      <button class="sidebar-nav-item" onclick="showTab('tasks', this)">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-        Tasks
-      </button>
-
-      <button class="sidebar-nav-item" onclick="showTab('product', this)">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="7" height="7"/><rect x="15" y="3" width="7" height="7"/><rect x="15" y="14" width="7" height="7"/><rect x="2" y="14" width="7" height="7"/></svg>
-        Product
-      </button>
-
+<div class="app">
+  <div class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">R</div>
+      <div class="brand-name">rentvine</div>
     </div>
+    <div class="nav-label">Navigation</div>
+    <div class="nav-item active" data-view="overview"><span class="nav-icon">☀</span> Overview</div>
+    <div class="nav-item" data-view="goals"><span class="nav-icon">📊</span> Goals &amp; Performance</div>
+    <div class="nav-item" data-view="tasks"><span class="nav-icon">☑</span> Tasks</div>
+    <div class="nav-item" data-view="product"><span class="nav-icon">▦</span> Product</div>
     <div class="sidebar-footer">
-      rentvine<span style="color:var(--vine)">●</span><br>
-      2026 Marketing Dashboard
+      <span class="dot"></span> rentvine · 2026 Marketing Dashboard
     </div>
-  </nav>
+  </div>
 
-  <!-- ── Main content ── -->
-  <main class="main-content" id="main-content">
-
-    <!-- ════════════════════════════════
-         TAB: Overview
-    ════════════════════════════════ -->
-    <section id="tab-overview" class="tab-panel active">
-
-      <!-- Campaign hero -->
-      <div class="campaign-anchor mb-28">
-        <div class="anchor-label">2026 Campaign Anchor</div>
-        <h2>Property management software worth switching for.</h2>
-        <p>Built for how property managers actually work: trust accounting that closes fast, onboarding we handle for you, and AI that handles the busywork.</p>
-        <div class="anchor-meta">
-          <span class="anchor-pill vine-pill">01 · De-risk the Switch</span>
-          <span class="anchor-pill blue-pill">02 · Product Marketing</span>
-          <span class="anchor-pill grape-pill">03 · Trade Marketing</span>
-          <span class="anchor-pill honey-pill">04 · Sales / BDR Alignment</span>
-        </div>
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title">
+        <h1>Campaign Command Center</h1>
       </div>
+      <div class="confidential-badge">2026 · PMSWSF · Confidential</div>
+    </div>
 
-      <!-- Big rocks progress -->
-      <div class="monday-section mb-24">
-        <div class="monday-section-header">
-          <div class="monday-section-title">Big Rocks — Campaign Progress</div>
-          <button class="sync-btn" id="rocks-sync-btn" onclick="fetchRockProgress()">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-            Sync from Monday
-          </button>
-        </div>
-        <div id="rocks-progress-body"><!-- populated by JS --></div>
-      </div>
+    <div class="content">
 
-      <!-- Messaging guidelines -->
-      <div class="section-header mb-16" style="margin-top:8px;">
-        <div class="section-title">Campaign Messaging Guidelines</div>
-      </div>
-
-      <div class="messaging-card mb-20">
-        <h3>The switching angle</h3>
-        <p>Every campaign asset should make switching to Rentvine feel like the obvious, low-risk choice. We lead with the pain of staying, then prove the ease of moving. The message is not "Rentvine is great" — it's "your current software is costing you, and switching is easier than you think."</p>
-
-        <div class="proof-grid">
-          <div class="proof-tile"><div class="stat">42</div><div class="desc">days to go live</div></div>
-          <div class="proof-tile"><div class="stat">80%</div><div class="desc">migration handled for you</div></div>
-          <div class="proof-tile"><div class="stat">#1</div><div class="desc">on propertymanagement.com</div></div>
-          <div class="proof-tile"><div class="stat">35m</div><div class="desc">avg support response</div></div>
-        </div>
-      </div>
-
-      <div class="messaging-card mb-20">
-        <h3>Sample copy lines</h3>
-        <div class="sample-copy-block">"You didn't get into property management to fight your software. Rentvine gets out of the way."</div>
-        <div class="sample-copy-block">"42 days to go live. 80% of migration handled for you. Month-end close in hours, not days."</div>
-        <div class="sample-copy-block">"The #1-rated property management platform. Your competitors are already there."</div>
-        <div class="sample-copy-block">"We've moved 500+ companies off AppFolio, Buildium, and Yardi. We know the path."</div>
-      </div>
-
-      <div class="messaging-card">
-        <h3>Voice guidelines</h3>
-        <p>Rentvine copy should feel confident, direct, and human. We don't hedge. We don't over-explain. We write for the PM who has 40 tabs open and 12 minutes for lunch.</p>
-        <div class="voice-grid">
-          <div class="voice-item"><strong>Tone</strong>Confident without being cocky. Helpful without being soft.</div>
-          <div class="voice-item"><strong>Sentence length</strong>Short. If it takes two sentences, make it one.</div>
-          <div class="voice-item"><strong>Always lead with</strong>The pain or problem, not the feature.</div>
-          <div class="voice-item"><strong>Never say</strong>"Robust," "seamless," "cutting-edge," "all-in-one solution."</div>
-          <div class="voice-item"><strong>Numbers</strong>Use specific proof points. "Hours, not days" beats "faster."</div>
-          <div class="voice-item"><strong>CTA style</strong>"See how it works" over "Request a demo." Active, low-friction.</div>
-        </div>
-      </div>
-
-    </section>
-
-    <!-- ════════════════════════════════
-         TAB: Goals & Performance
-    ════════════════════════════════ -->
-    <section id="tab-goals" class="tab-panel">
-
-      <!-- Section header with HubSpot link -->
-      <div class="section-header mb-20">
-        <div class="section-title">2026 Goals</div>
-        <a class="ext-link" href="https://app.hubspot.com" target="_blank" rel="noopener">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-          HubSpot
-        </a>
-      </div>
-
-      <!-- Goal cards -->
-      <div class="goals-grid">
-        <!-- Demos -->
-        <div class="goal-card">
-          <div class="big-stat">2.3k</div>
-          <div class="stat-label">Demo goal, 2026</div>
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-            <span style="font-size:13px;font-weight:600;color:var(--stone);">Current:</span>
-            <input type="number" id="demos-ytd" min="0" value="504" style="width:80px;padding:5px 10px;border:1.5px solid var(--border-lt);border-radius:8px;font-family:Manrope,sans-serif;font-size:14px;font-weight:700;color:var(--text-1);background:var(--bg-input);text-align:center;outline:none;transition:border-color 0.15s;" onchange="saveDemosYtd()" onfocus="this.style.borderColor='var(--vine)'" onblur="this.style.borderColor='var(--border-lt)'">
-            <span style="color:var(--grey);font-weight:600;">/</span>
-            <span style="font-size:14px;font-weight:600;color:var(--stone);">2,300</span>
-            <span id="demos-ytd-pct" style="font-size:13px;font-weight:700;color:var(--vine);min-width:44px;">21.9%</span>
-          </div>
-          <div class="progress-bar-wrap mb-8">
-            <div class="progress-bar-fill" id="demos-ytd-bar" style="background:var(--vine);width:21.9%"></div>
-          </div>
-          <div class="goal-source">Demos completed YTD · Source: HubSpot</div>
-          <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
-            <div class="goal-updated" id="demos-updated-txt" style="margin:0;">Last updated: <span id="demos-update-date">—</span></div>
-            <button id="hs-sync-btn" onclick="syncHubSpot()" style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border:1.5px solid var(--vine);background:transparent;color:var(--vine);border-radius:6px;font-family:Manrope,sans-serif;font-size:11px;font-weight:700;cursor:pointer;transition:background 0.15s,color 0.15s;" onmouseover="this.style.background='var(--vine)';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='var(--vine)'">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-              Sync HubSpot
-            </button>
+      <div class="view active" id="view-overview">
+        <div class="hero">
+          <div class="eyebrow">2026 campaign anchor</div>
+          <h2>Property management software worth switching for.</h2>
+          <p>Built for how property managers actually work: trust accounting that closes fast, onboarding we handle for you, and AI that handles the busywork.</p>
+          <div class="phase-row">
+            <span class="phase-pill phase-1">01 · De-risk the switch</span>
+            <span class="phase-pill phase-2">02 · Product marketing</span>
+            <span class="phase-pill phase-3">03 · Trade marketing</span>
+            <span class="phase-pill phase-4">04 · Sales / BDR alignment</span>
           </div>
         </div>
 
-        <!-- Units -->
-        <div class="goal-card" style="border-top-color:var(--blue);">
-          <div class="big-stat">100k</div>
-          <div class="stat-label">Units closed won, 2026</div>
-          <div class="progress-inputs">
-            <input type="number" id="units-current" min="0" placeholder="0" onchange="saveGoal('units')">
-            <span class="sep">/</span>
-            <input type="number" id="units-target" min="0" placeholder="100000" onchange="saveGoal('units')">
-            <span class="pct" id="units-pct">0%</span>
+        <div class="section-label">What's coming</div>
+        <div class="card">
+          <div class="timeline-row">
+            <div class="milestone-card type-launch">
+              <div class="milestone-date">Jul 29</div>
+              <div class="milestone-title">Rentvine Reconciliation 2.0 goes GA</div>
+              <span class="milestone-pill">Product</span>
+            </div>
+            <div class="milestone-card type-webinar">
+              <div class="milestone-date">Jul 29</div>
+              <div class="milestone-title">PM Assist AI Cookbook webinar</div>
+              <span class="milestone-pill">Webinar</span>
+            </div>
+            <div class="milestone-card type-launch">
+              <div class="milestone-date">Jul 31</div>
+              <div class="milestone-title">Owner Lead Portal goes GA</div>
+              <span class="milestone-pill">Product</span>
+            </div>
+            <div class="milestone-card type-webinar">
+              <div class="milestone-date">Aug 14</div>
+              <div class="milestone-title">PMAssist webinar: AI with Todd O.</div>
+              <span class="milestone-pill">Webinar</span>
+            </div>
+            <div class="milestone-card type-launch">
+              <div class="milestone-date">Aug 31</div>
+              <div class="milestone-title">New Support Experience goes GA</div>
+              <span class="milestone-pill">Product</span>
+            </div>
+            <div class="milestone-card type-launch">
+              <div class="milestone-date">Sep 1</div>
+              <div class="milestone-title">HOME by Rentvine goes GA</div>
+              <span class="milestone-pill">Product</span>
+            </div>
           </div>
-          <div class="progress-bar-wrap">
-            <div class="progress-bar-fill" id="units-bar" style="background:var(--blue);width:0%"></div>
+        </div>
+
+        <div class="section-label">Big rocks — major initiatives</div>
+        <div class="card">
+          <div class="rocks-grid">
+            <div class="rock-col">
+              <div class="rock-icon">🔒</div>
+              <h4>De-risk the switch</h4>
+              <ul class="rock-list">
+                <li>Case studies</li>
+                <li>Direct mail</li>
+                <li>NARPM Nationals</li>
+                <li>Accounting e-guide</li>
+                <li>Onboarding e-guide</li>
+              </ul>
+            </div>
+            <div class="rock-col">
+              <div class="rock-icon">🤖</div>
+              <h4>Product marketing</h4>
+              <ul class="rock-list">
+                <li>AI GTM</li>
+                <li>Integrations</li>
+              </ul>
+            </div>
+            <div class="rock-col">
+              <div class="rock-icon">📣</div>
+              <h4>Trade marketing</h4>
+              <ul class="rock-list">
+                <li>PM Trends 2026</li>
+                <li>propertymanagement.com</li>
+                <li>PMBuild / PM Assist</li>
+                <li>Peter Lohmann</li>
+                <li>Webinar / Podcast leaders</li>
+              </ul>
+            </div>
+            <div class="rock-col">
+              <div class="rock-icon">🤝</div>
+              <h4>Sales / BDR alignment</h4>
+              <ul class="rock-list">
+                <li>Sales copy</li>
+                <li>Case study integrations</li>
+                <li>Propmgmt</li>
+                <li>Demo nurtures</li>
+                <li>Stage 1 nurtures</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-label">Pebbles — ongoing work</div>
+        <div class="pebble-row">
+          <span class="pebble-pill">Hot takes</span>
+          <span class="pebble-pill">AI-focused content for organic search</span>
+          <span class="pebble-pill">Rentvine newsletter</span>
+        </div>
+
+        <div class="section-label">Campaign messaging guidelines</div>
+        <div class="card">
+          <div class="guideline-title">The switching angle</div>
+          <p class="guideline-body">Every campaign asset should make switching to Rentvine feel like the obvious, low-risk choice. We lead with the pain of staying, then prove the ease of moving. The message is not "Rentvine is great" — it's "your current software is costing you, and switching is easier than you think."</p>
+          <div class="stat-row">
+            <div class="stat-card"><div class="stat-num">42</div><div class="stat-label">days to go live</div></div>
+            <div class="stat-card"><div class="stat-num">80%</div><div class="stat-label">migration handled for you</div></div>
+            <div class="stat-card"><div class="stat-num">#1</div><div class="stat-label">on propertymanagement.com</div></div>
+            <div class="stat-card"><div class="stat-num">35m</div><div class="stat-label">avg support response</div></div>
           </div>
         </div>
       </div>
 
-      <!-- Review platforms -->
-      <div class="section-header mb-16">
-        <div class="section-title">Review Platforms</div>
-        <a class="ext-link" href="https://www.google.com/search?q=rentvine+reviews" target="_blank" rel="noopener">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-          Google Reviews
-        </a>
+      <div class="view" id="view-goals">
+        <div class="coming-soon">
+          <div class="coming-soon-emoji">🚧</div>
+          <div class="coming-soon-title">Coming soon!</div>
+          <div class="coming-soon-body">Leads &amp; goals tracking for this campaign is in the works.</div>
+        </div>
       </div>
 
-      <div class="rep-platforms">
-        <div class="rep-card">
-          <div class="rep-card-header">
-            <div class="rep-platform-name">G2</div>
-            <a class="rep-link" href="https://www.g2.com/products/rentvine" target="_blank" rel="noopener">View on G2 →</a>
+      <div class="view" id="view-tasks">
+        <div class="section-label">Tasks tagged "PMSWSF" — Monday.com</div>
+        <div class="note">53 items found across 4 boards in the Marketing workspace, snapshot pulled July 21, 2026. Ask to refresh anytime.</div>
+
+        <div class="card" style="overflow-x:auto;">
+          <div class="card-head"><h3>Creative Content Planner <span class="src-pill" style="margin-left:8px;">21</span></h3></div>
+          <table class="tasks-table">
+            <thead><tr><th>Task</th><th>Owner</th><th>Due</th><th>Stage</th></tr></thead>
+            <tbody>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/18412178056/pulses/12478549810">Meta ads refresh - August</a></td><td>Amy Lostutter</td><td>2026-07-22</td><td><span class="stage-pill stage-active">July 2026</span></td></tr>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/18412178056/pulses/12493532807">Webinar graphic - PMAssist</a></td><td>Amy Lostutter</td><td>2026-07-22</td><td><span class="stage-pill stage-active">July 2026</span></td></tr>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/18412178056/pulses/12564268986">Webinar with Todd and Nathan</a></td><td>Amy Lostutter</td><td>2026-07-30</td><td><span class="stage-pill stage-active">July 2026</span></td></tr>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/18412178056/pulses/12591917561">Rentvine AI Cookbook for MCP</a></td><td>Amy Lostutter</td><td>2026-08-05</td><td><span class="stage-pill stage-active">July 2026</span></td></tr>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/18412178056/pulses/12501196363">MCP cookbook</a></td><td>Amy Lostutter</td><td>2026-08-07</td><td><span class="stage-pill stage-active">August 2026</span></td></tr>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/18412178056/pulses/11955713637">Homepage banner image refresh</a></td><td>Amy Lostutter</td><td>2026-05-20</td><td><span class="stage-pill stage-done">Complete</span></td></tr>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/18412178056/pulses/12116440054">Jumbotron NARPM Ad</a></td><td>Amy Lostutter</td><td>2026-05-29</td><td><span class="stage-pill stage-done">Complete</span></td></tr>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/18412178056/pulses/12169204655">Email header - AI/Reconciliation</a></td><td>Amy Lostutter</td><td>2026-06-02</td><td><span class="stage-pill stage-done">Complete</span></td></tr>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/18412178056/pulses/12128501823">Email footers - VPI report and PM Trends report</a></td><td>Amy Lostutter</td><td>2026-06-11</td><td><span class="stage-pill stage-done">Complete</span></td></tr>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/18412178056/pulses/12128285988">Email footers - Updated testimonials</a></td><td>Amy Lostutter</td><td>2026-06-11</td><td><span class="stage-pill stage-done">Complete</span></td></tr>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/18412178056/pulses/12203610655">Sunlight PM Case study graphics</a></td><td>Amy Lostutter, Morgan Oaks</td><td>2026-06-11</td><td><span class="stage-pill stage-done">Complete</span></td></tr>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/18412178056/pulses/12246426326">Territory email header</a></td><td>Amanda Sylvester</td><td>2026-06-12</td><td><span class="stage-pill stage-done">Complete</span></td></tr>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/18412178056/pulses/12161780453">Meta ads refresh</a></td><td>Amy Lostutter</td><td>2026-06-15</td><td><span class="stage-pill stage-done">Complete</span></td></tr>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/18412178056/pulses/11981123913">Switch</a></td><td>Morgan Oaks</td><td>2026-06-16</td><td><span class="stage-pill stage-done">Complete</span></td></tr>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/18412178056/pulses/12231803417">PM Trends Report ad set</a></td><td>Amanda Sylvester</td><td>2026-06-19</td><td><span class="stage-pill stage-done">Complete</span></td></tr>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/18412178056/pulses/12358550673">VPI report email banner</a></td><td>Amy Lostutter</td><td>2026-06-25</td><td><span class="stage-pill stage-done">Complete</span></td></tr>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/18412178056/pulses/12161596061">Rosenbaum Realty Case Study</a></td><td>Kaitlin Yezek, Morgan Oaks</td><td>2026-06-29</td><td><span class="stage-pill stage-done">Complete</span></td></tr>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/18412178056/pulses/12172697273">Meta + 6sense Sales rep ads</a></td><td>Amanda Sylvester</td><td>2026-06-30</td><td><span class="stage-pill stage-done">Complete</span></td></tr>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/18412178056/pulses/12358751939">6sense ads (resizing from Meta)</a></td><td>Amanda Sylvester</td><td>2026-07-03</td><td><span class="stage-pill stage-done">Complete</span></td></tr>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/18412178056/pulses/12411376364">Review graphic for email</a></td><td>Amanda Sylvester</td><td>2026-07-07</td><td><span class="stage-pill stage-done">Complete</span></td></tr>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/18412178056/pulses/12493656528">propertymanagement.com + rentvine connection</a></td><td>Amy Lostutter, Morgan Oaks</td><td>2026-07-16</td><td><span class="stage-pill stage-done">Complete</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card" style="overflow-x:auto;">
+          <div class="card-head"><h3>Email Marketing Planner <span class="src-pill" style="margin-left:8px;">24</span></h3></div>
+          <table class="tasks-table">
+            <thead><tr><th>Task</th><th>Owner</th><th>Due</th><th>Stage</th></tr></thead>
+            <tbody>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/7035266275/pulses/12562689255">propertymanagement.com + Rentvine connection</a></td><td>Kaitlin Yezek</td><td>2026-07-10</td><td><span class="stage-pill stage-active">Upcoming</span></td></tr>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/7035266275/pulses/11821029534">NARPM Prospecting</a></td><td class="unassigned">Unassigned</td><td>2026-07-08</td><td><span class="stage-pill stage-active">Upcoming</span></td></tr>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/7035266275/pulses/11586000913">Product Launch: Rentvine Reconciliation 2.0</a></td><td>Amy Lostutter</td><td>2026-06-10</td><td><span class="stage-pill stage-active">Upcoming</span></td></tr>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/7035266275/pulses/12077759294">Product Launch: Rentvine Reconciliation 2.0</a></td><td>Kaitlin Yezek</td><td>2026-04-24</td><td><span class="stage-pill stage-active">Upcoming</span></td></tr>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/7035266275/pulses/12351446824">Propsect MCP feature email</a></td><td>Amy Lostutter</td><td>2026-07-22</td><td><span class="stage-pill stage-active">Upcoming</span></td></tr>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/7035266275/pulses/12493619842">PM Assist AI Cookbook webinar</a></td><td>Amy Lostutter, Kaitlin Yezek</td><td>2026-07-29</td><td><span class="stage-pill stage-active">Upcoming</span></td></tr>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/7035266275/pulses/12118605452">Product Launch: Inbound Phone Support</a></td><td>Kaitlin Yezek</td><td>2026-08-13</td><td><span class="stage-pill stage-active">Upcoming</span></td></tr>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/7035266275/pulses/12430488863">Product Launch: HOME (Resident Experience Package)</a></td><td>Kaitlin Yezek</td><td class="unassigned">No date</td><td><span class="stage-pill stage-active">Upcoming</span></td></tr>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/7035266275/pulses/12493651365">propertymanagement.com + Rentvine connection</a></td><td>Amy Lostutter</td><td>2026-07-10</td><td><span class="stage-pill stage-active">Upcoming</span></td></tr>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/7035266275/pulses/12105942035">PM Trends Digital Report Webinar Prospects</a></td><td>Amy Lostutter</td><td>2026-05-25</td><td><span class="stage-pill stage-done">Sent</span></td></tr>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/7035266275/pulses/12078282076">PM Trends DIgital Report Webinar</a></td><td>Amy Lostutter</td><td>2026-05-25</td><td><span class="stage-pill stage-done">Sent</span></td></tr>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/7035266275/pulses/11999768015">AI landing page - prospecting - A/B testing</a></td><td>Amy Lostutter</td><td>2026-05-27</td><td><span class="stage-pill stage-done">Sent</span></td></tr>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/7035266275/pulses/11920442997">Feature Launch: Rentvine H04 Insurance (renters insurance)</a></td><td>Amy Lostutter, Kaitlin Yezek</td><td>2026-05-28</td><td><span class="stage-pill stage-done">Sent</span></td></tr>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/7035266275/pulses/11920395248">Feature Launch: Phone Support: Wave 3</a></td><td>Amy Lostutter</td><td>2026-06-03</td><td><span class="stage-pill stage-done">Sent</span></td></tr>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/7035266275/pulses/12222180842">Rentvine Renters Insurance Reminder</a></td><td>Amy Lostutter</td><td>2026-06-09</td><td><span class="stage-pill stage-done">Sent</span></td></tr>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/7035266275/pulses/12244163324">Michelle event outreach - NYC</a></td><td class="unassigned">Unassigned</td><td>2026-06-10</td><td><span class="stage-pill stage-done">Sent</span></td></tr>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/7035266275/pulses/12263152942">Michelle event outreach - Long Island</a></td><td class="unassigned">Unassigned</td><td>2026-06-10</td><td><span class="stage-pill stage-done">Sent</span></td></tr>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/7035266275/pulses/12074400444">Propertymanagement.com VPI report</a></td><td>Amy Lostutter</td><td>2026-06-04</td><td><span class="stage-pill stage-done">Sent</span></td></tr>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/7035266275/pulses/12369815815">Product launch: Rentvine Insurance Email 3</a></td><td>Amy Lostutter</td><td>2026-06-25</td><td><span class="stage-pill stage-done">Sent</span></td></tr>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/7035266275/pulses/12182169599">Prospect Quarterly Recap</a></td><td>Amy Lostutter</td><td>2026-06-25</td><td><span class="stage-pill stage-done">Sent</span></td></tr>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/7035266275/pulses/12348798497">California prospects</a></td><td>Amy Lostutter</td><td>2026-07-01</td><td><span class="stage-pill stage-done">Sent</span></td></tr>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/7035266275/pulses/12458623440">Sasan - In Market event 1</a></td><td>Amanda Sylvester</td><td>2026-07-10</td><td><span class="stage-pill stage-done">Sent</span></td></tr>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/7035266275/pulses/12468842620">Sasan - In Market event 2</a></td><td>Amanda Sylvester</td><td>2026-07-10</td><td><span class="stage-pill stage-done">Sent</span></td></tr>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/7035266275/pulses/12370040516">July Territory email blasts (Becca, AnDrae, Mike D, Kari, Dave Martin)</a></td><td>Amanda Sylvester, Amy Lostutter</td><td>2026-07-02</td><td><span class="stage-pill stage-done">Sent</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card" style="overflow-x:auto;">
+          <div class="card-head"><h3>Webinars / Podcasts <span class="src-pill" style="margin-left:8px;">4</span></h3></div>
+          <table class="tasks-table">
+            <thead><tr><th>Task</th><th>Owner</th><th>Due</th><th>Stage</th></tr></thead>
+            <tbody>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/8212295438/pulses/12064511477">AI thought leadership with Nathan Jackson</a></td><td>Amy Lostutter</td><td class="unassigned">No date</td><td><span class="stage-pill stage-active">Scheduled</span></td></tr>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/8212295438/pulses/12078195522">PM Trends webinar</a></td><td>Amy Lostutter</td><td>2026-05-28</td><td><span class="stage-pill stage-active">Scheduled</span></td></tr>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/8212295438/pulses/12233914130">PMAssist Webinar - Todd O - AI</a></td><td>Amy Lostutter</td><td>2026-08-14</td><td><span class="stage-pill stage-active">Scheduled</span></td></tr>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/8212295438/pulses/12233901089">PMAssist Webinar - Todd O Accounting</a></td><td>Amy Lostutter</td><td>2026-10-30</td><td><span class="stage-pill stage-active">Scheduled</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card" style="overflow-x:auto;">
+          <div class="card-head"><h3>RV Social Media Planner <span class="src-pill" style="margin-left:8px;">4</span></h3></div>
+          <table class="tasks-table">
+            <thead><tr><th>Task</th><th>Owner</th><th>Due</th><th>Stage</th></tr></thead>
+            <tbody>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/6804519609/pulses/9895092274">Ransom 1</a></td><td>Morgan Oaks</td><td>2025-09-24</td><td><span class="stage-pill stage-done">Sep 2025</span></td></tr>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/6804519609/pulses/10019397029">E-guide signup</a></td><td>Morgan Oaks</td><td>2025-09-24</td><td><span class="stage-pill stage-done">Sep 2025</span></td></tr>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/6804519609/pulses/10082262353">Ransom - No more chains</a></td><td>Morgan Oaks</td><td>2025-10-07</td><td><span class="stage-pill stage-done">Oct 2025</span></td></tr>
+              <tr><td><a class="task-link" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/6804519609/pulses/18224752273">tollie clip - why RV</a></td><td>Morgan Oaks</td><td>2025-11-04</td><td><span class="stage-pill stage-done">Nov 2025</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="view" id="view-product">
+        <div class="section-label">Tier 1 — major initiatives · 2026</div>
+        <div class="note">From Product GTM Tracker, T1 - MAJOR group. 2026-dated items only, ordered by soonest Target GA.</div>
+        <div class="product-grid">
+          <div class="product-card">
+            <a class="task-link item-name" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/18421987602/pulses/12531172133">Custom Scoring Matrix</a>
+            <div class="pill-row"><span class="area-pill">Screening</span><span class="stage-pill stage-done">Open Beta</span></div>
+            <div class="meta-row"><span>Owner</span><span class="meta-value">Kaitlin Yezek</span></div>
+            <div class="meta-row"><span>PM</span><span class="meta-value">Katie Palinchak</span></div>
+            <div class="meta-row"><span>Target GA</span><span class="ga-date">2026-06-18</span></div>
           </div>
-          <div class="rep-stats">
-            <div class="rep-stat-field"><label>Current rating</label><input type="number" id="g2-rating" step="0.1" min="1" max="5" value="4.7" onchange="saveRepData()"></div>
-            <div class="rep-stat-field"><label>Reviews</label><input type="number" id="g2-reviews" min="0" value="142" onchange="saveRepData()"></div>
-            <div class="rep-stat-field"><label>Target rating</label><input type="number" id="g2-target" step="0.1" min="1" max="5" value="4.9" onchange="saveRepData()"></div>
+          <div class="product-card">
+            <a class="task-link item-name" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/18421987602/pulses/12531184044">Rentvine Reconciliation 2.0</a>
+            <div class="pill-row"><span class="area-pill">Accounting</span><span class="stage-pill stage-done">Open Beta</span></div>
+            <div class="meta-row"><span>Owner</span><span class="meta-value">Kaitlin Yezek</span></div>
+            <div class="meta-row"><span>PM</span><span class="meta-value">Robert Desotelle</span></div>
+            <div class="meta-row"><span>Target GA</span><span class="ga-date">2026-07-29</span></div>
           </div>
-        </div>
-        <div class="rep-card blue-rep">
-          <div class="rep-card-header">
-            <div class="rep-platform-name">Google</div>
-            <a class="rep-link blue-link" href="https://www.google.com/search?q=Rentvine+Property+Management+Software+Reviews" target="_blank" rel="noopener">View on Google →</a>
+          <div class="product-card">
+            <a class="task-link item-name" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/18421987602/pulses/12531183997">Owner Lead Portal</a>
+            <div class="pill-row"><span class="area-pill">CRM</span><span class="stage-pill stage-active">On Track</span></div>
+            <div class="meta-row"><span>Owner</span><span class="meta-value">Kaitlin Yezek</span></div>
+            <div class="meta-row"><span>PM</span><span class="meta-value">Dallin Welch</span></div>
+            <div class="meta-row"><span>Target GA</span><span class="ga-date">2026-07-31</span></div>
           </div>
-          <div class="rep-stats">
-            <div class="rep-stat-field"><label>Current rating</label><input type="number" id="google-rating" step="0.1" min="1" max="5" value="4.5" onchange="saveRepData()"></div>
-            <div class="rep-stat-field"><label>Reviews</label><input type="number" id="google-reviews" min="0" value="38" onchange="saveRepData()"></div>
-            <div class="rep-stat-field"><label>Target rating</label><input type="number" id="google-target" step="0.1" min="1" max="5" value="4.8" onchange="saveRepData()"></div>
+          <div class="product-card">
+            <a class="task-link item-name" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/18421987602/pulses/12531621231">New Support Experience</a>
+            <div class="pill-row"><span class="area-pill">Support</span><span class="stage-pill stage-active">On Track</span></div>
+            <div class="meta-row"><span>Owner</span><span class="meta-value">Kaitlin Yezek</span></div>
+            <div class="meta-row"><span>PM</span><span class="meta-value">Bekah Kohls</span></div>
+            <div class="meta-row"><span>Target GA</span><span class="ga-date">2026-08-31</span></div>
           </div>
-        </div>
-      </div>
-
-      <!-- Live reviews feed -->
-      <div class="reviews-feed-section">
-        <div class="reviews-feed-header">
-          <div style="display:flex;align-items:center;gap:10px;">
-            <div class="section-title" style="margin-bottom:0;">Recent Reviews <span style="font-weight:500;text-transform:none;letter-spacing:0;font-size:11px;color:var(--grey);">· last 30 days</span></div>
-            <a class="ext-link" href="https://www.google.com/search?q=rentvine+reviews" target="_blank" rel="noopener">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-              Reviews
-            </a>
+          <div class="product-card">
+            <a class="task-link item-name" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/18421987602/pulses/12531172240">HOME by Rentvine</a>
+            <div class="pill-row"><span class="area-pill">REP</span><span class="stage-pill stage-active">On Track</span></div>
+            <div class="meta-row"><span>Owner</span><span class="meta-value">Kaitlin Yezek</span></div>
+            <div class="meta-row"><span>PM</span><span class="meta-value">Sean Oh</span></div>
+            <div class="meta-row"><span>Target GA</span><span class="ga-date">2026-09-01</span></div>
           </div>
-          <button class="sync-btn" id="rep-sync-btn" onclick="fetchReviews()">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-            Sync reviews
-          </button>
-        </div>
-        <div id="review-cat-tabs" style="display:none;gap:6px;flex-wrap:wrap;margin-bottom:16px;">
-          <button class="rev-cat-btn active" data-cat="all" onclick="filterReviews('all',this)">All</button>
-          <button class="rev-cat-btn" data-cat="onboarding" onclick="filterReviews('onboarding',this)">Onboarding</button>
-          <button class="rev-cat-btn" data-cat="support" onclick="filterReviews('support',this)">Support</button>
-          <button class="rev-cat-btn" data-cat="migration" onclick="filterReviews('migration',this)">Migration</button>
-          <button class="rev-cat-btn" data-cat="switching" onclick="filterReviews('switching',this)">Switching</button>
-        </div>
-        <div id="reviews-feed-body"><!-- populated by JS --></div>
-      </div>
-
-    </section>
-
-    <!-- ════════════════════════════════
-         TAB: Tasks
-    ════════════════════════════════ -->
-    <section id="tab-tasks" class="tab-panel">
-
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
-        <div style="display:flex;align-items:center;gap:10px;">
-          <div class="section-title" style="margin-bottom:0;">PMSWSF Tasks</div>
-          <a class="ext-link" href="https://rentvine.monday.com/boards/18409717478" target="_blank" rel="noopener">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-            Monday Board
-          </a>
-        </div>
-        <div class="view-pill-row" style="margin-bottom:0;">
-          <button class="view-pill active" id="pill-list" onclick="toggleTaskView('list')">List</button>
-          <button class="view-pill" id="pill-calendar" onclick="toggleTaskView('calendar')">Calendar</button>
-        </div>
-      </div>
-
-      <!-- List view -->
-      <div id="list-view">
-        <!-- Rock progress cards in tasks tab -->
-        <div id="tasks-rocks-body" style="margin-bottom:20px;"><!-- populated by JS --></div>
-
-        <div class="monday-section">
-          <div class="monday-section-header">
-            <div class="monday-section-title">Email campaign tasks <span style="font-size:11px;font-weight:500;color:var(--stone);text-transform:none;letter-spacing:0;">· next 2 weeks</span></div>
-            <button class="sync-btn" id="campaign-sync-btn" onclick="fetchCampaignTasks()">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-              Sync with Monday
-            </button>
+          <div class="product-card">
+            <a class="task-link item-name" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/18421987602/pulses/12531172239">Document Fraud Detection</a>
+            <div class="pill-row"><span class="area-pill">Screening</span><span class="stage-pill stage-active">Research &amp; Discovery</span></div>
+            <div class="meta-row"><span>Owner</span><span class="meta-value">Kaitlin Yezek</span></div>
+            <div class="meta-row"><span>PM</span><span class="meta-value">Katie Palinchak</span></div>
+            <div class="meta-row"><span>Target GA</span><span class="ga-date">2026-09-30</span></div>
           </div>
-          <div id="campaign-task-body"><!-- populated by JS --></div>
-        </div>
-      </div>
-
-      <!-- Calendar view -->
-      <div id="calendar-view">
-        <div class="monday-section">
-          <div class="monday-section-header">
-            <div class="monday-section-title">Task Calendar <span style="font-size:11px;font-weight:500;color:var(--stone);text-transform:none;letter-spacing:0;">· 5-week rolling view</span></div>
-            <button class="sync-btn" onclick="fetchCampaignTasks()">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-              Refresh
-            </button>
+          <div class="product-card">
+            <a class="task-link item-name" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/18421987602/pulses/12531184045">Corporate Accounting</a>
+            <div class="pill-row"><span class="area-pill">Accounting</span><span class="stage-pill stage-active">Research &amp; Discovery</span></div>
+            <div class="meta-row"><span>Owner</span><span class="meta-value">Kaitlin Yezek</span></div>
+            <div class="meta-row"><span>PM</span><span class="meta-value">Robert Desotelle</span></div>
+            <div class="meta-row"><span>Target GA</span><span class="ga-date">2026-10-01</span></div>
           </div>
-          <div id="calendar-body"><!-- populated by renderCalendar() --></div>
-        </div>
-      </div>
-
-    </section>
-
-    <!-- ════════════════════════════════
-         TAB: Product
-    ════════════════════════════════ -->
-    <section id="tab-product" class="tab-panel">
-
-      <div class="section-header mb-20">
-        <div class="section-title">Product &amp; Campaign</div>
-        <a class="ext-link" href="#" target="_blank" rel="noopener">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-          Product Roadmap
-        </a>
-      </div>
-
-      <div class="product-intro mb-24">
-        <h3>Product's role in the campaign</h3>
-        <p>Product features are not the story — they are the <em>proof</em>. Every feature we highlight exists to answer one customer question: "What makes switching worth it?" We don't lead with what the feature does. We lead with what it solves for a property manager who has been burned before.</p>
-        <p style="margin-bottom:0;">The switching campaign works when product and marketing move together: product ships the thing, marketing turns it into evidence. Fixie AI is proof that AI actually saves time. Month-end close is proof that accounting doesn't have to be painful. The Mobile App is proof that Rentvine works how PMs actually work — on the go.</p>
-      </div>
-
-      <div class="section-header mb-16">
-        <div class="section-title">Feature Spotlight</div>
-      </div>
-
-      <div class="feature-grid mb-24">
-
-        <div class="feature-card">
-          <div class="feature-name">Fixie AI</div>
-          <div class="feature-benefit">Handles the day-to-day AI busywork — lease questions, maintenance routing, owner comms — so PMs get hours back every week.</div>
-          <div class="feature-map"><strong>Campaign link:</strong> De-risking the switch means showing that Rentvine doesn't just replace your old software — it does more, automatically.</div>
-          <a class="feature-demo-link" href="#" target="_blank">View demo ↗</a>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-name">Mobile App</div>
-          <div class="feature-benefit">Full property management from your phone — inspections, maintenance, owner approvals, and financials anywhere.</div>
-          <div class="feature-map"><strong>Campaign link:</strong> Competitors still require a desktop for real work. This is a switching proof point that lands in demos.</div>
-          <a class="feature-demo-link" href="#" target="_blank">View demo ↗</a>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-name">Month-End Close</div>
-          <div class="feature-benefit">Trust accounting that closes in hours, not days — reconciliation, reports, and owner distributions without the late nights.</div>
-          <div class="feature-map"><strong>Campaign link:</strong> The #1 pain point for switchers from AppFolio and Buildium. This is the headline proof point for the switching angle.</div>
-          <a class="feature-demo-link" href="#" target="_blank">View demo ↗</a>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-name">Owner Portal</div>
-          <div class="feature-benefit">A self-service portal that keeps owners informed, reduces inbound calls, and builds trust through transparency.</div>
-          <div class="feature-map"><strong>Campaign link:</strong> Retention story — PMs who switch to Rentvine retain more owners because owners see the value too.</div>
-          <a class="feature-demo-link" href="#" target="_blank">View demo ↗</a>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-name">Reporting</div>
-          <div class="feature-benefit">Custom owner, portfolio, and performance reports — out-of-the-box templates plus fully configurable views.</div>
-          <div class="feature-map"><strong>Campaign link:</strong> Proof that Rentvine scales with growth. PMs managing 500+ units need real reporting, not spreadsheet exports.</div>
-          <a class="feature-demo-link" href="#" target="_blank">View demo ↗</a>
-        </div>
-
-      </div>
-
-      <div class="alignment-card">
-        <h3>Product ↔ Marketing Alignment</h3>
-        <div class="alignment-grid">
-          <div class="alignment-col">
-            <h4>Product is doing</h4>
-            <ul class="alignment-list">
-              <li>Shipping Fixie AI enhancements and documenting capabilities for marketing assets</li>
-              <li>Providing migration playbooks and data for the 42-day proof point</li>
-              <li>Creating demo environments for feature spotlights in sales decks</li>
-              <li>Tracking month-end close benchmarks to support proof point accuracy</li>
-              <li>Roadmap planning with growth features for the 2H 2026 campaign push</li>
-            </ul>
+          <div class="product-card">
+            <a class="task-link item-name" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/18421987602/pulses/12531172136">Fixie Pro - Maintenance Intake with Voice</a>
+            <div class="pill-row"><span class="area-pill">AI</span><span class="stage-pill stage-risk">At Risk</span></div>
+            <div class="meta-row"><span>Owner</span><span class="meta-value">Kaitlin Yezek</span></div>
+            <div class="meta-row"><span>PM</span><span class="meta-value">Heraíd Castillo</span></div>
+            <div class="meta-row"><span>Target GA</span><span class="ga-date">2026-10-05</span></div>
           </div>
-          <div class="alignment-col">
-            <h4>Marketing is amplifying</h4>
-            <ul class="alignment-list blue-list">
-              <li>Turning product capabilities into switching proof points across all channels</li>
-              <li>Building feature-specific landing pages and email nurture sequences</li>
-              <li>Creating the Fixie AI GTM campaign (Big Rock 02 · Product Marketing)</li>
-              <li>Using product stats in G2 / review campaigns and sales collateral</li>
-              <li>Producing video demos and case study content tied to feature outcomes</li>
-            </ul>
+          <div class="product-card">
+            <a class="task-link item-name" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/18421987602/pulses/12531184051">Emergency Contact Center</a>
+            <div class="pill-row"><span class="area-pill">AI</span><span class="stage-pill stage-risk">At Risk</span></div>
+            <div class="meta-row"><span>Owner</span><span class="meta-value">Kaitlin Yezek</span></div>
+            <div class="meta-row"><span>PM</span><span class="meta-value">Heraíd Castillo</span></div>
+            <div class="meta-row"><span>Target GA</span><span class="ga-date">2026-10-05</span></div>
+          </div>
+          <div class="product-card">
+            <a class="task-link item-name" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/18421987602/pulses/12531184050">Maintenance Command Center</a>
+            <div class="pill-row"><span class="area-pill">AI</span><span class="stage-pill stage-active">On Track</span></div>
+            <div class="meta-row"><span>Owner</span><span class="meta-value">Kaitlin Yezek</span></div>
+            <div class="meta-row"><span>PM</span><span class="meta-value">Heraíd Castillo</span></div>
+            <div class="meta-row"><span>Target GA</span><span class="ga-date">2026-10-05</span></div>
+          </div>
+          <div class="product-card">
+            <a class="task-link item-name" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/18421987602/pulses/12531172135">Owner Tasks/Workflows</a>
+            <div class="pill-row"><span class="area-pill">CRM</span><span class="stage-pill stage-active">Research &amp; Discovery</span></div>
+            <div class="meta-row"><span>Owner</span><span class="meta-value">Kaitlin Yezek</span></div>
+            <div class="meta-row"><span>PM</span><span class="meta-value">Dallin Welch</span></div>
+            <div class="meta-row"><span>Target GA</span><span class="ga-date">2026-10-30</span></div>
+          </div>
+          <div class="product-card">
+            <a class="task-link item-name" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/18421987602/pulses/12531597427">Mobile: Push Notifications</a>
+            <div class="pill-row"><span class="area-pill">Mobile</span><span class="stage-pill stage-active">On Track</span></div>
+            <div class="meta-row"><span>Owner</span><span class="meta-value">Kaitlin Yezek</span></div>
+            <div class="meta-row"><span>PM</span><span class="meta-value">Sara Nachman</span></div>
+            <div class="meta-row"><span>Target GA</span><span class="ga-date">2026-11-30</span></div>
+          </div>
+          <div class="product-card">
+            <a class="task-link item-name" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/18421987602/pulses/12531172134">Owner Drip Campaigns</a>
+            <div class="pill-row"><span class="area-pill">CRM</span><span class="stage-pill stage-active">Research &amp; Discovery</span></div>
+            <div class="meta-row"><span>Owner</span><span class="meta-value">Kaitlin Yezek</span></div>
+            <div class="meta-row"><span>PM</span><span class="meta-value">Dallin Welch</span></div>
+            <div class="meta-row"><span>Target GA</span><span class="ga-date">2026-11-30</span></div>
+          </div>
+          <div class="product-card">
+            <a class="task-link item-name" target="_blank" rel="noopener" href="https://rentvine.monday.com/boards/18421987602/pulses/12531172238">End-to-End Income Verification</a>
+            <div class="pill-row"><span class="area-pill">Screening</span><span class="stage-pill stage-active">Research &amp; Discovery</span></div>
+            <div class="meta-row"><span>Owner</span><span class="meta-value">Kaitlin Yezek</span></div>
+            <div class="meta-row"><span>PM</span><span class="meta-value">Katie Palinchak</span></div>
+            <div class="meta-row"><span>Target GA</span><span class="ga-date">2026-11-30</span></div>
           </div>
         </div>
       </div>
 
-    </section>
-
-  </main>
+    </div>
+  </div>
 </div>
 
-<!-- Toast -->
-<div id="toast"></div>
-
 <script>
-/* ─── Monday API helper ─────────────────────────────────────── */
-async function callMonday(query, variables = {}) {
-  const token = 'eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjY2MTY3MzkwOSwiYWFpIjoxMSwidWlkIjo3ODI4Mzk4OSwiaWFkIjoiMjAyNi0wNS0yMVQyMDozNzo0MC43NTVaIiwicGVyIjoibWU6d3JpdGUiLCJhY3RpZCI6MTAwMzU3MTQsInJnbiI6InVzZTEifQ.8tuM8LhgIUCeUbzskxMPUA0VgX2uigLDv0S5b_38z2E';
-  if (!token) return null;
-  try {
-    const res = await fetch('https://api.monday.com/v2', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': token,
-        'API-Version': '2024-01'
-      },
-      body: JSON.stringify({ query, variables })
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      item.classList.add('active');
+      document.getElementById('view-' + item.dataset.view).classList.add('active');
     });
-    return await res.json();
-  } catch(e) {
-    console.error('Monday API error', e);
-    return null;
-  }
-}
-
-/* ─── Toast helper ──────────────────────────────────────────── */
-let toastTimer;
-function showToast(msg, isError) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = 'show' + (isError ? ' error' : '');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { t.className = ''; }, 3200);
-}
-
-/* ─── Sidebar tab switching ─────────────────────────────────── */
-function showTab(id, btn) {
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.sidebar-nav-item').forEach(b => b.classList.remove('active'));
-  const panel = document.getElementById('tab-' + id);
-  if (panel) {
-    panel.classList.add('active');
-    panel.style.animation = 'none';
-    panel.offsetHeight;
-    panel.style.animation = '';
-  }
-  if (btn) btn.classList.add('active');
-  // scroll main content to top
-  document.getElementById('main-content').scrollTop = 0;
-}
-
-/* ─── LocalStorage helpers ──────────────────────────────────── */
-function lsGet(key, def) {
-  try {
-    const v = localStorage.getItem(key);
-    return v !== null ? JSON.parse(v) : def;
-  } catch(e) { return def; }
-}
-function lsSet(key, val) {
-  try { localStorage.setItem(key, JSON.stringify(val)); } catch(e) {}
-}
-
-/* ─── Utility ───────────────────────────────────────────────── */
-function escHtml(str) {
-  if (str == null) return '';
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
-function escAttr(str) {
-  if (str == null) return '';
-  return String(str).replace(/'/g, '&#39;').replace(/"/g, '&quot;');
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   Goals — Demos YTD
-═══════════════════════════════════════════════════════════════ */
-function saveDemosYtd() {
-  const val = parseInt(document.getElementById('demos-ytd').value) || 0;
-  const target = 2300;
-  const pct = Math.min(100, Math.round((val / target) * 100));
-  document.getElementById('demos-ytd-pct').textContent = pct + '%';
-  document.getElementById('demos-ytd-bar').style.width = pct + '%';
-  const now = new Date();
-  const dateStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  document.getElementById('demos-update-date').textContent = dateStr;
-  lsSet('ytdDemos', { count: val, date: dateStr });
-}
-
-function initDemosYtd() {
-  const saved = lsGet('ytdDemos', { count: 504, date: null, source: 'manual' });
-  const val = saved.count;
-  const target = 2300;
-  const pct = Math.min(100, Math.round((val / target) * 100));
-  document.getElementById('demos-ytd').value = val;
-  document.getElementById('demos-ytd-pct').textContent = pct + '%';
-  document.getElementById('demos-ytd-bar').style.width = pct + '%';
-  document.getElementById('demos-update-date').textContent = saved.date || '—';
-}
-
-async function syncHubSpot() {
-  const btn = document.getElementById('hs-sync-btn');
-  let token = lsGet('hsToken', null);
-
-  if (!token) {
-    token = prompt(
-      'Enter your HubSpot private app token to sync demo counts.\n\n' +
-      'You can create one at: HubSpot → Settings → Account Setup → Private Apps\n\n' +
-      'The token will be saved locally in your browser.'
-    );
-    if (!token || !token.trim()) return;
-    token = token.trim();
-    lsSet('hsToken', token);
-  }
-
-  btn.disabled = true;
-  btn.style.opacity = '0.6';
-
-  try {
-    const yearStart = new Date(new Date().getFullYear(), 0, 1).getTime();
-    const body = {
-      filterGroups: [{
-        filters: [
-          { propertyName: 'hs_meeting_outcome', operator: 'EQ', value: 'COMPLETED' },
-          { propertyName: 'hs_createdate', operator: 'GTE', value: String(yearStart) }
-        ]
-      }],
-      properties: ['hs_meeting_title', 'hs_meeting_outcome'],
-      limit: 1
-    };
-
-    const res = await fetch('https://api.hubapi.com/crm/v3/objects/meetings/search', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + token
-      },
-      body: JSON.stringify(body)
-    });
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      if (res.status === 401) {
-        lsSet('hsToken', null);
-        showToast('HubSpot token invalid — cleared. Try syncing again.', true);
-      } else {
-        showToast('HubSpot sync failed: ' + (err.message || res.status), true);
-      }
-      return;
-    }
-
-    const json = await res.json();
-    const count = json.total;
-
-    document.getElementById('demos-ytd').value = count;
-    const target = 2300;
-    const pct = Math.min(100, Math.round((count / target) * 100));
-    document.getElementById('demos-ytd-pct').textContent = pct + '%';
-    document.getElementById('demos-ytd-bar').style.width = pct + '%';
-
-    const now = new Date();
-    const dateStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) +
-      ' ' + now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-    document.getElementById('demos-update-date').textContent = dateStr;
-    lsSet('ytdDemos', { count, date: dateStr, source: 'hubspot' });
-
-    showToast('HubSpot synced — ' + count + ' completed demos YTD ✓', false);
-  } catch(e) {
-    showToast('HubSpot sync error: ' + e.message, true);
-  } finally {
-    btn.disabled = false;
-    btn.style.opacity = '1';
-  }
-}
-
-/* Units goal */
-const GOAL_DEFAULTS = { units: { current: 0, target: 100000 } };
-function saveGoal(key) {
-  const cur = parseFloat(document.getElementById(key + '-current').value) || 0;
-  const tgt = parseFloat(document.getElementById(key + '-target').value) || 1;
-  lsSet('goal-' + key, { current: cur, target: tgt });
-  updateGoalBar(key, cur, tgt);
-}
-function updateGoalBar(key, cur, tgt) {
-  const pct = tgt > 0 ? Math.min(100, Math.round((cur / tgt) * 100)) : 0;
-  document.getElementById(key + '-pct').textContent = pct + '%';
-  document.getElementById(key + '-bar').style.width = pct + '%';
-}
-function initGoals() {
-  const saved = lsGet('goal-units', GOAL_DEFAULTS.units);
-  document.getElementById('units-current').value = saved.current;
-  document.getElementById('units-target').value  = saved.target;
-  updateGoalBar('units', saved.current, saved.target);
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   Big Rocks progress (Overview + Tasks tabs)
-═══════════════════════════════════════════════════════════════ */
-const ROCKS_CONFIG = [
-  { groupId: 'group_mm3hb65w', num: '01', title: 'De-risk the Switch',    cls: 'rock-vine'  },
-  { groupId: 'group_mm3ht90g', num: '02', title: 'Product Marketing',      cls: 'rock-blue'  },
-  { groupId: 'group_mm3h63v2', num: '03', title: 'Trade Marketing',        cls: 'rock-grape' },
-  { groupId: 'group_mm3h2tsb', num: '04', title: 'Sales / BDR Alignment',  cls: 'rock-honey' },
-];
-const MILESTONES_GROUP = 'group_mm3sqsp4';
-const PEBBLES_GROUP    = 'group_mm3hs0ax';
-
-function rockStatusInfo(text) {
-  if (!text) return { dot: 'dot-none', label: 'Not started' };
-  const t = text.toLowerCase();
-  if (t.includes('done'))                              return { dot: 'dot-done',     label: 'Done'        };
-  if (t.includes('working') || t.includes('progress')) return { dot: 'dot-progress', label: 'In progress' };
-  if (t.includes('stuck')   || t.includes('block'))    return { dot: 'dot-blocked',  label: 'Blocked'     };
-  if (t.includes('review'))                            return { dot: 'dot-progress', label: 'In review'   };
-  return { dot: 'dot-none', label: text };
-}
-
-function buildRocksHTML(groupMap) {
-  const colVal = (item, id) => (item.column_values.find(c => c.id === id) || {}).text || '';
-
-  const rockCards = ROCKS_CONFIG.map(rock => {
-    const group = groupMap[rock.groupId];
-    const items = group?.items_page?.items || [];
-    const total = items.length;
-    const doneCount = items.filter(i => (colVal(i, 'color_mm3rnzy0') || '').toLowerCase().includes('done')).length;
-    const pct = total > 0 ? Math.round((doneCount / total) * 100) : 0;
-
-    const itemRows = items.map(item => {
-      const statusText = colVal(item, 'color_mm3rnzy0');
-      const { dot } = rockStatusInfo(statusText);
-      const isDone = dot === 'dot-done';
-      return `<li class="rock-item-row">
-        <span class="rock-item-name ${isDone ? 'done-item' : ''}">${escHtml(item.name)}</span>
-        <span class="rock-status-dot ${dot}" title="${escHtml(statusText || 'Not started')}"></span>
-      </li>`;
-    }).join('');
-
-    return `<div class="rock-card ${rock.cls}">
-      <div class="rock-card-header">
-        <div>
-          <div class="rock-num">${rock.num}</div>
-          <div class="rock-title">${rock.title}</div>
-        </div>
-        <div class="rock-progress-label">${doneCount}/${total}</div>
-      </div>
-      <div class="rock-bar-wrap"><div class="rock-bar-fill" style="width:${pct}%"></div></div>
-      <ul class="rock-items-list">${itemRows || '<li class="rock-item-row" style="color:var(--grey);font-size:12px;">No items yet</li>'}</ul>
-    </div>`;
-  }).join('');
-
-  const milestoneGroup = groupMap[MILESTONES_GROUP];
-  const milestoneItems = milestoneGroup?.items_page?.items || [];
-  const milestonePills = milestoneItems.map(item => {
-    const statusText = colVal(item, 'color_mm3rnzy0');
-    const { dot } = rockStatusInfo(statusText);
-    return `<span class="milestone-pill"><span class="rock-status-dot ${dot}"></span>${escHtml(item.name)}</span>`;
-  }).join('');
-
-  const pebblesGroup = groupMap[PEBBLES_GROUP];
-  const pebbleItems = pebblesGroup?.items_page?.items || [];
-  const pebblePills = pebbleItems.map(item =>
-    `<span class="pebble-pill">${escHtml(item.name)}</span>`
-  ).join('');
-
-  return `
-    <div class="rocks-grid">${rockCards}</div>
-    ${milestoneItems.length ? `<div class="milestones-strip"><span class="milestone-label">Milestones</span>${milestonePills}</div>` : ''}
-    ${pebbleItems.length ? `<div class="pebbles-strip"><span class="pebbles-label">Pebbles</span>${pebblePills}</div>` : ''}`;
-}
-
-// Store last fetched rock data globally
-window._lastGroupMap = null;
-
-async function fetchRockProgress() {
-  const btn = document.getElementById('rocks-sync-btn');
-  if (btn) btn.disabled = true;
-
-  const skeletonHTML = `<div class="rocks-grid">${Array(4).fill(0).map(() => `
-    <div class="rock-card" style="opacity:.5;">
-      <div class="skeleton" style="height:14px;width:40%;margin-bottom:8px;"></div>
-      <div class="skeleton" style="height:5px;width:100%;margin-bottom:14px;border-radius:99px;"></div>
-      ${Array(3).fill('<div class="skeleton" style="height:12px;width:90%;margin-bottom:6px;"></div>').join('')}
-    </div>`).join('')}</div>`;
-
-  const overviewBody = document.getElementById('rocks-progress-body');
-  const tasksBody    = document.getElementById('tasks-rocks-body');
-  if (overviewBody) overviewBody.innerHTML = skeletonHTML;
-  if (tasksBody)    tasksBody.innerHTML    = skeletonHTML;
-
-  const groupIds = [...ROCKS_CONFIG.map(r => r.groupId), MILESTONES_GROUP, PEBBLES_GROUP].map(id => `"${id}"`).join(', ');
-  const q = `query {
-    boards(ids: [18409717478]) {
-      groups(ids: [${groupIds}]) {
-        id title
-        items_page(limit: 50) {
-          items {
-            id name
-            column_values(ids: ["color_mm3rnzy0"]) { id text }
-          }
-        }
-      }
-    }
-  }`;
-
-  const data = await callMonday(q);
-  if (btn) btn.disabled = false;
-
-  if (!data || data.errors) {
-    const errHTML = `<div class="error-state">Could not load rock progress from Monday.
-      <button class="retry-link" onclick="fetchRockProgress()">Retry</button></div>`;
-    if (overviewBody) overviewBody.innerHTML = errHTML;
-    if (tasksBody)    tasksBody.innerHTML    = errHTML;
-    return;
-  }
-
-  const groups = data.data?.boards?.[0]?.groups || [];
-  const groupMap = {};
-  groups.forEach(g => { groupMap[g.id] = g; });
-  window._lastGroupMap = groupMap;
-
-  const html = buildRocksHTML(groupMap);
-  if (overviewBody) overviewBody.innerHTML = html;
-  if (tasksBody)    tasksBody.innerHTML    = html;
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   Campaign tasks (Monday email board)
-═══════════════════════════════════════════════════════════════ */
-
-// Store fetched tasks globally for calendar
-window.allFetchedTasks = [];
-
-function renderSkeletonTasks() {
-  const rows = Array(5).fill(0).map(() => `
-    <tr class="skeleton-row">
-      <td><div class="skeleton skeleton-cell" style="width:70%"></div></td>
-      <td><div class="skeleton skeleton-cell" style="width:60%"></div></td>
-      <td><div class="skeleton skeleton-cell" style="width:80px"></div></td>
-      <td><div class="skeleton skeleton-cell" style="width:90px"></div></td>
-      <td><div class="skeleton skeleton-cell" style="width:90px"></div></td>
-      <td><div class="skeleton skeleton-cell" style="width:60px"></div></td>
-      <td><div class="skeleton skeleton-cell" style="width:80px"></div></td>
-    </tr>`).join('');
-  document.getElementById('campaign-task-body').innerHTML = `
-    <table class="task-table">
-      <thead><tr><th>Task</th><th>Group</th><th>Send Date</th><th>Audience</th><th>Owner</th><th>Status</th><th>Action</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>`;
-}
-
-async function fetchCampaignTasks() {
-  const btn = document.getElementById('campaign-sync-btn');
-  if (btn) btn.disabled = true;
-  renderSkeletonTasks();
-
-  const q = `query {
-    boards(ids: [7035266275]) {
-      items_page(limit: 200) {
-        items {
-          id
-          name
-          group { id title }
-          column_values(ids: ["dropdown_mm1cac03", "status8", "date", "status_12", "status__1", "person"]) {
-            id text
-          }
-        }
-      }
-    }
-  }`;
-
-  const data = await callMonday(q);
-  if (btn) btn.disabled = false;
-
-  if (!data || data.errors) {
-    document.getElementById('campaign-task-body').innerHTML = `
-      <div class="error-state">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        Could not connect to Monday. Check your API key or network.
-        <button class="retry-link" onclick="fetchCampaignTasks()">Retry</button>
-      </div>`;
-    return;
-  }
-
-  const allItems = (data.data?.boards?.[0]?.items_page?.items) || [];
-  const pmswsfItems = allItems.filter(item => {
-    const campaignCol = item.column_values.find(c => c.id === 'dropdown_mm1cac03');
-    return campaignCol && campaignCol.text && campaignCol.text.trim() === 'PMSWSF';
   });
 
-  // Store all PMSWSF items globally for calendar
-  window.allFetchedTasks = pmswsfItems;
-
-  // Rolling 2-week filter for list view
-  const today = new Date(); today.setHours(0, 0, 0, 0);
-  const twoWeeks = new Date(today); twoWeeks.setDate(today.getDate() + 14);
-  const items = pmswsfItems.filter(item => {
-    const dateText = (item.column_values.find(c => c.id === 'date') || {}).text || '';
-    if (!dateText) return true;
-    const dt = new Date(dateText); dt.setHours(0, 0, 0, 0);
-    return dt >= today && dt <= twoWeeks;
-  });
-
-  if (items.length === 0) {
-    document.getElementById('campaign-task-body').innerHTML = `
-      <div class="empty-state-monday">
-        No items tagged PMSWSF yet.<br>
-        Tag any email in the Monday Email Marketing Planner with Campaign Name = PMSWSF to see it here.<br><br>
-        <a href="https://rentvine.monday.com/boards/7035266275" target="_blank" rel="noopener">Open Monday Board →</a>
-      </div>`;
-    renderCalendar();
-    return;
-  }
-
-  const colVal = (item, id) => (item.column_values.find(c => c.id === id) || {}).text || '';
-
-  const rows = items.map(item => {
-    const status      = colVal(item, 'status8');
-    const sendDateRaw = colVal(item, 'date');
-    const audience    = colVal(item, 'status_12');
-    const owner       = colVal(item, 'person');
-    const isSent      = status && status.toLowerCase() === 'sent';
-
-    let fmtDate = '—';
-    if (sendDateRaw) {
-      const d = new Date(sendDateRaw);
-      if (!isNaN(d)) fmtDate = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    }
-
-    const statusClass = isSent ? 'sent' : (status ? 'draft' : 'other');
-    const statusLabel = status || 'Not set';
-    const actionCell  = isSent
-      ? `<span class="sent-badge">Sent</span>`
-      : `<button class="mark-sent-btn" onclick="markTaskSent('${item.id}', this)">Mark as sent ✓</button>`;
-
-    const ownerHtml = owner
-      ? `<span style="display:inline-flex;align-items:center;gap:5px;">
-           <span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--dew);color:var(--vine);font-size:10px;font-weight:800;flex-shrink:0;">${owner.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase()}</span>
-           <span style="font-size:12px;color:var(--smoke);">${escHtml(owner)}</span>
-         </span>`
-      : '—';
-
-    return `<tr id="task-row-${item.id}">
-      <td class="task-name">${escHtml(item.name)}</td>
-      <td><span class="group-tag">${escHtml(item.group?.title || '—')}</span></td>
-      <td>${fmtDate}</td>
-      <td>${escHtml(audience || '—')}</td>
-      <td>${ownerHtml}</td>
-      <td><span class="status-pill ${statusClass}">${escHtml(statusLabel)}</span></td>
-      <td>${actionCell}</td>
-    </tr>`;
-  }).join('');
-
-  document.getElementById('campaign-task-body').innerHTML = `
-    <table class="task-table">
-      <thead><tr><th>Task</th><th>Group</th><th>Send Date</th><th>Audience</th><th>Owner</th><th>Status</th><th>Action</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>`;
-
-  renderCalendar();
-}
-
-async function markTaskSent(itemId, btn) {
-  const row = document.getElementById('task-row-' + itemId);
-  const statusCell = row ? row.querySelector('.status-pill') : null;
-  if (statusCell) { statusCell.className = 'status-pill sent'; statusCell.textContent = 'Sent'; }
-  btn.replaceWith(Object.assign(document.createElement('span'), { className: 'sent-badge', textContent: 'Sent' }));
-
-  const mutation = `mutation {
-    change_column_value(
-      board_id: 7035266275,
-      item_id: ${itemId},
-      column_id: "status8",
-      value: "{\\"index\\": 1}"
-    ) { id }
-  }`;
-
-  const result = await callMonday(mutation);
-  if (!result || result.errors) {
-    if (statusCell) { statusCell.className = 'status-pill draft'; statusCell.textContent = 'Draft'; }
-    const sentBadge = row ? row.querySelector('.sent-badge') : null;
-    if (sentBadge) {
-      const newBtn = document.createElement('button');
-      newBtn.className = 'mark-sent-btn';
-      newBtn.textContent = 'Mark as sent ✓';
-      newBtn.onclick = () => markTaskSent(itemId, newBtn);
-      sentBadge.replaceWith(newBtn);
-    }
-    showToast('Could not update Monday — please try again.', true);
-  } else {
-    showToast('Marked as sent ✓', false);
-  }
-}
-
-/* ─── Task view toggle (List / Calendar) ─── */
-function toggleTaskView(view) {
-  document.getElementById('list-view').style.display     = view === 'list'     ? 'block' : 'none';
-  document.getElementById('calendar-view').style.display = view === 'calendar' ? 'block' : 'none';
-  document.getElementById('pill-list').classList.toggle('active',     view === 'list');
-  document.getElementById('pill-calendar').classList.toggle('active', view === 'calendar');
-  if (view === 'calendar') renderCalendar();
-}
-
-/* ─── Calendar render ─── */
-function renderCalendar() {
-  const container = document.getElementById('calendar-body');
-  if (!container) return;
-
-  const tasks = window.allFetchedTasks || [];
-  const colVal = (item, id) => (item.column_values.find(c => c.id === id) || {}).text || '';
-
-  // Build a map: dateStr -> [task names]
-  const taskMap = {};
-  tasks.forEach(item => {
-    const dateText = colVal(item, 'date');
-    if (!dateText) return;
-    const d = new Date(dateText);
-    if (isNaN(d)) return;
-    const key = d.toISOString().slice(0, 10);
-    if (!taskMap[key]) taskMap[key] = [];
-    taskMap[key].push(item.name);
-  });
-
-  // Start from Monday of current week
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const todayStr = today.toISOString().slice(0, 10);
-
-  const startDay = new Date(today);
-  const dow = startDay.getDay(); // 0=Sun
-  const diffToMon = dow === 0 ? -6 : 1 - dow;
-  startDay.setDate(startDay.getDate() + diffToMon);
-
-  // 5 weeks = 35 days
-  const days = [];
-  for (let i = 0; i < 35; i++) {
-    const d = new Date(startDay);
-    d.setDate(startDay.getDate() + i);
-    days.push(d);
-  }
-
-  const dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-
-  let html = `<div class="calendar-header-row">
-    ${dayLabels.map(l => `<div class="cal-day-label">${l}</div>`).join('')}
-  </div>
-  <div class="calendar-grid">`;
-
-  days.forEach(d => {
-    const key = d.toISOString().slice(0, 10);
-    const isPast = d < today;
-    const isToday = key === todayStr;
-    const cellTasks = taskMap[key] || [];
-
-    html += `<div class="cal-cell${isPast ? ' past-day' : ''}">
-      <div class="cal-date-num${isToday ? ' today' : ''}">${d.getDate()}</div>
-      ${cellTasks.slice(0, 3).map(name =>
-        `<div class="cal-task-pill" title="${escAttr(name)}">${escHtml(name.length > 22 ? name.slice(0, 22) + '…' : name)}</div>`
-      ).join('')}
-      ${cellTasks.length > 3 ? `<div style="font-size:10px;color:var(--stone);font-weight:700;padding:1px 4px;">+${cellTasks.length - 3} more</div>` : ''}
-    </div>`;
-  });
-
-  html += '</div>';
-  container.innerHTML = html;
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   Reputation — Reviews
-═══════════════════════════════════════════════════════════════ */
-const REP_DEFAULTS = {
-  g2Rating: '4.7', g2Reviews: '142', g2Target: '4.9',
-  googleRating: '4.5', googleReviews: '38', googleTarget: '4.8'
-};
-
-function getRepData() { return lsGet('rep-data', REP_DEFAULTS); }
-
-function saveRepData() {
-  const d = {
-    g2Rating:      document.getElementById('g2-rating').value,
-    g2Reviews:     document.getElementById('g2-reviews').value,
-    g2Target:      document.getElementById('g2-target').value,
-    googleRating:  document.getElementById('google-rating').value,
-    googleReviews: document.getElementById('google-reviews').value,
-    googleTarget:  document.getElementById('google-target').value
-  };
-  lsSet('rep-data', d);
-}
-
-function initReputation() {
-  const d = getRepData();
-  document.getElementById('g2-rating').value      = d.g2Rating;
-  document.getElementById('g2-reviews').value     = d.g2Reviews;
-  document.getElementById('g2-target').value      = d.g2Target;
-  document.getElementById('google-rating').value  = d.googleRating;
-  document.getElementById('google-reviews').value = d.googleReviews;
-  document.getElementById('google-target').value  = d.googleTarget;
-}
-
-function renderReviewSkeletons() {
-  const cards = Array(4).fill(0).map(() => `
-    <div style="border:1.5px solid var(--border);border-radius:10px;padding:16px;">
-      <div class="skeleton" style="height:14px;width:60px;margin-bottom:10px;"></div>
-      <div class="skeleton" style="height:16px;width:40%;margin-bottom:6px;"></div>
-      <div class="skeleton" style="height:12px;width:30%;margin-bottom:10px;"></div>
-      <div class="skeleton" style="height:12px;width:100%;margin-bottom:4px;"></div>
-      <div class="skeleton" style="height:12px;width:80%;"></div>
-    </div>`).join('');
-  document.getElementById('reviews-feed-body').innerHTML = `
-    <div class="reviews-stat-bar">
-      <div class="skeleton" style="height:40px;width:140px;border-radius:8px;"></div>
-      <div class="skeleton" style="height:40px;width:140px;border-radius:8px;"></div>
-      <div class="skeleton" style="height:40px;width:140px;border-radius:8px;"></div>
-    </div>
-    <div class="reviews-grid">${cards}</div>`;
-}
-
-async function fetchReviews() {
-  const btn = document.getElementById('rep-sync-btn');
-  btn.disabled = true;
-  renderReviewSkeletons();
-
-  const q = `query {
-    boards(ids: [18407730790]) {
-      groups(ids: ["topics"]) {
-        items_page(limit: 100) {
-          items {
-            id name
-            column_values(ids: ["dropdown_mm27kdnd","text_mm27v2h6","date_mm27ht0n","numeric_mm27hbf","numeric_mm277e5m","text_mm2727mw","text_mm277yy4"]) {
-              id text
-            }
-          }
-        }
-      }
-    }
-  }`;
-
-  const data = await callMonday(q);
-  btn.disabled = false;
-
-  if (!data || data.errors) {
-    document.getElementById('reviews-feed-body').innerHTML = `
-      <div class="error-state">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        Could not connect to Monday. Check your API key or network.
-        <button class="retry-link" onclick="fetchReviews()">Retry</button>
-      </div>`;
-    return;
-  }
-
-  const rawItems = data.data?.boards?.[0]?.groups?.[0]?.items_page?.items || [];
-
-  const cutoff = new Date();
-  cutoff.setDate(cutoff.getDate() - 30);
-
-  const colVal = (item, id) => (item.column_values.find(c => c.id === id) || {}).text || '';
-
-  const reviews = rawItems.map(item => {
-    const platform  = colVal(item, 'dropdown_mm27kdnd');
-    const text      = colVal(item, 'text_mm27v2h6');
-    const dateStr   = colVal(item, 'date_mm27ht0n');
-    const gStars    = parseFloat(colVal(item, 'numeric_mm27hbf')) || 0;
-    const g2Score   = parseFloat(colVal(item, 'numeric_mm277e5m')) || 0;
-    const company   = colVal(item, 'text_mm2727mw');
-    const territory = colVal(item, 'text_mm277yy4');
-    return { id: item.id, name: item.name, platform, text, dateStr, gStars, g2Score, company, territory };
-  }).filter(r => {
-    if (!r.dateStr) return false;
-    const d = new Date(r.dateStr);
-    return !isNaN(d) && d >= cutoff;
-  }).sort((a, b) => new Date(b.dateStr) - new Date(a.dateStr));
-
-  const total = reviews.length;
-  const g2Count = reviews.filter(r => r.platform.toLowerCase().includes('g2')).length;
-  const googleCount = reviews.filter(r => r.platform.toLowerCase().includes('google')).length;
-
-  if (total === 0) {
-    document.getElementById('reviews-feed-body').innerHTML =
-      `<div class="empty-state-monday">No reviews found in the past 30 days from this Monday board.</div>`;
-    return;
-  }
-
-  const CATEGORY_KEYWORDS = {
-    onboarding: ['onboard', 'setup', 'set up', 'getting started', 'implementation', 'set-up', 'launch', 'go-live', 'go live'],
-    support: ['support', 'customer service', 'help desk', 'responsive', 'team helped', 'quick response', 'fast response', 'service team'],
-    migration: ['migrat', 'convert', 'import', 'transfer', 'moved from', 'switching from', 'transition', 'data migr'],
-    switching: ['switch', 'worth switch', 'switched', 'switch from', 'alternative', 'compared to', 'replace', 'left appfolio', 'left buildium', 'left propertyware', 'left yardi', 'left rent manager']
-  };
-
-  function categorizeReview(r) {
-    const haystack = ((r.text || '') + ' ' + (r.name || '')).toLowerCase();
-    const cats = [];
-    for (const [cat, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
-      if (keywords.some(kw => haystack.includes(kw))) cats.push(cat);
-    }
-    return cats.length ? cats : ['other'];
-  }
-
-  const categorizedReviews = reviews.map(r => ({ ...r, categories: categorizeReview(r) }));
-
-  window._allReviews = categorizedReviews;
-  window._reviewStats = { total, g2Count, googleCount };
-
-  const tabsEl = document.getElementById('review-cat-tabs');
-  tabsEl.style.display = 'flex';
-  tabsEl.querySelectorAll('.rev-cat-btn').forEach(b => b.classList.toggle('active', b.dataset.cat === 'all'));
-
-  renderReviewCards(categorizedReviews, total, g2Count, googleCount);
-}
-
-function renderReviewCards(reviews, total, g2Count, googleCount) {
-  function formatDate(str) {
-    const d = new Date(str);
-    if (isNaN(d)) return str;
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  }
-  function googleStarsHtml(n) {
-    const full = Math.round(Math.min(5, Math.max(0, n)));
-    return `<span class="stars-filled">${'★'.repeat(full)}</span><span class="stars-empty">${'☆'.repeat(5 - full)}</span>`;
-  }
-  function truncate(str, len) {
-    if (!str) return '';
-    return str.length > len ? str.slice(0, len) + '…' : str;
-  }
-
-  const cards = reviews.map(r => {
-    const isG2     = r.platform.toLowerCase().includes('g2');
-    const isGoogle = r.platform.toLowerCase().includes('google');
-    const badgeClass    = isG2 ? 'g2-badge' : (isGoogle ? 'google-badge' : 'g2-badge');
-    const platformLabel = isG2 ? 'G2' : (isGoogle ? 'Google' : r.platform || 'Review');
-
-    const ratingHtml = isGoogle && r.gStars
-      ? `<div class="review-rating">${googleStarsHtml(r.gStars)}</div>`
-      : (r.g2Score ? `<div class="review-rating"><span class="g2-rating-txt">${r.g2Score}/10</span></div>` : '');
-
-    const snippetId = 'rv-txt-' + r.id;
-    const fullText  = r.text || '';
-    const short     = truncate(fullText, 120);
-    const needsExpand = fullText.length > 120;
-    const textHtml  = needsExpand
-      ? `<span id="${snippetId}">${escHtml(short)}<button class="review-readmore" onclick="expandReview('${snippetId}','${escAttr(fullText)}')">read more</button></span>`
-      : escHtml(fullText);
-
-    const companyLine = (r.company && r.company.toLowerCase() !== 'unknown' && r.company.trim())
-      ? `<div class="review-company">${escHtml(r.company)}${r.territory ? ' · ' + escHtml(r.territory) : ''}</div>`
-      : (r.territory ? `<div class="review-company">${escHtml(r.territory)}</div>` : '');
-
-    const mainCats = (r.categories || []).filter(c => c !== 'other');
-    const catPills = mainCats.map(c =>
-      `<span style="display:inline-block;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.03em;background:var(--dew);color:var(--vine);margin-right:4px;">${c}</span>`
-    ).join('');
-
-    return `<div class="review-card">
-      <div class="review-card-top">
-        <span class="review-platform-badge ${badgeClass}">${escHtml(platformLabel)}</span>
-        <span class="review-date">${escHtml(formatDate(r.dateStr))}</span>
-      </div>
-      <div class="review-reviewer">${escHtml(r.name || 'Anonymous')}</div>
-      ${companyLine}
-      ${ratingHtml}
-      ${catPills ? `<div style="margin-bottom:8px;">${catPills}</div>` : ''}
-      <div class="review-text">${textHtml}</div>
-    </div>`;
-  }).join('');
-
-  const shownCount = reviews.length;
-  document.getElementById('reviews-feed-body').innerHTML = `
-    <div class="reviews-stat-bar">
-      <div class="rev-stat-item"><strong>${total}</strong>reviews this month</div>
-      <div class="rev-stat-item"><strong>${g2Count}</strong>G2 reviews</div>
-      <div class="rev-stat-item"><strong>${googleCount}</strong>Google reviews</div>
-      ${shownCount < total ? `<div class="rev-stat-item" style="color:var(--stone);">Showing <strong>${shownCount}</strong> in this category</div>` : ''}
-    </div>
-    ${shownCount === 0
-      ? `<div class="empty-state-monday">No reviews in this category for the past 30 days.</div>`
-      : `<div class="reviews-grid">${cards}</div>`}`;
-}
-
-function filterReviews(cat, btn) {
-  document.querySelectorAll('.rev-cat-btn').forEach(b => b.classList.remove('active'));
-  if (btn) btn.classList.add('active');
-  const all = window._allReviews || [];
-  const { total = 0, g2Count = 0, googleCount = 0 } = window._reviewStats || {};
-  const filtered = cat === 'all' ? all : all.filter(r => r.categories && r.categories.includes(cat));
-  renderReviewCards(filtered, total, g2Count, googleCount);
-}
-
-function expandReview(spanId, fullText) {
-  const el = document.getElementById(spanId);
-  if (el) el.innerHTML = escHtml(fullText);
-}
-
-/* ─── Load Monday data ─────────────────────────────────────── */
-function loadMondayData() {
-  fetchRockProgress();
-  fetchCampaignTasks();
-  fetchReviews();
-}
-
-/* ─── Init ─────────────────────────────────────────────────── */
-function init() {
-  initDemosYtd();
-  initGoals();
-  initReputation();
-
-  // Show list view by default
-  document.getElementById('list-view').style.display     = 'block';
-  document.getElementById('calendar-view').style.display = 'none';
-
-  // API key is hardcoded — load data directly
-  loadMondayData();
-}
-
-document.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
 </html>
